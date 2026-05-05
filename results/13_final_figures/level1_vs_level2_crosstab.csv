@@ -1,0 +1,12 @@
+manual_level1,Ambiguous,Classical_monocyte,Cycling_myeloid,DC_broad,Erythroid_broad,GMP_neutrophil_primed,Immature_neutrophil,Mature_B,Mature_neutrophil,Plasma_cell,Pro_Pre_B,Progenitor_ambiguous,T_cell_broad,pDC
+B_cell,0,0,0,0,0,0,0,464,0,0,343,0,0,0
+DC,0,0,0,378,0,0,0,0,0,0,0,0,0,115
+T_cell,0,0,0,0,0,0,0,0,0,0,0,0,314,0
+ambiguous_myeloid,119,0,0,0,0,0,0,0,0,0,0,0,0,0
+cycling_myeloid,0,0,4311,0,0,0,0,0,0,0,0,0,0,0
+erythroid,0,0,0,0,1062,0,0,0,0,0,0,0,0,0
+granulocyte_neutrophil,0,0,0,0,0,0,6970,0,12111,0,0,0,0,0
+monocyte,0,1096,0,0,0,0,0,0,0,0,0,0,0,0
+myeloid_progenitor,0,0,0,0,0,7094,0,0,0,0,0,2691,0,0
+plasma_cell,0,0,0,0,0,0,0,0,0,62,0,0,0,0
+progenitor,0,0,0,0,0,0,0,0,0,0,0,5260,0,0

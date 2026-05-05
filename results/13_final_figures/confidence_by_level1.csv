@@ -1,0 +1,12 @@
+manual_level1,high,low,medium
+B_cell,0,0,807
+DC,115,0,378
+T_cell,314,0,0
+ambiguous_myeloid,0,119,0
+cycling_myeloid,4311,0,0
+erythroid,0,0,1062
+granulocyte_neutrophil,17845,78,1158
+monocyte,1096,0,0
+myeloid_progenitor,7094,2691,0
+plasma_cell,62,0,0
+progenitor,0,5260,0

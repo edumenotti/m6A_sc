@@ -1,0 +1,16 @@
+manual_level1,manual_level2,n_cells,pct
+progenitor,Progenitor_ambiguous,5260,12.41
+myeloid_progenitor,Progenitor_ambiguous,2691,6.35
+myeloid_progenitor,GMP_neutrophil_primed,7094,16.74
+cycling_myeloid,Cycling_myeloid,4311,10.17
+DC,DC_broad,378,0.89
+DC,pDC,115,0.27
+plasma_cell,Plasma_cell,62,0.15
+ambiguous_myeloid,Ambiguous,119,0.28
+erythroid,Erythroid_broad,1062,2.51
+T_cell,T_cell_broad,314,0.74
+monocyte,Classical_monocyte,1096,2.59
+B_cell,Pro_Pre_B,343,0.81
+B_cell,Mature_B,464,1.09
+granulocyte_neutrophil,Immature_neutrophil,6970,16.44
+granulocyte_neutrophil,Mature_neutrophil,12111,28.57
