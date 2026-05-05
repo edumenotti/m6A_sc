@@ -1,0 +1,8 @@
+compartment,subcluster,n_cells,pos_markers_mean,neg_markers_mean,level2_call
+b_cell,0,357,1.0166,3.582,Mature_B
+b_cell,1,139,2.1716,0.5541,Pro_Pre_B
+b_cell,2,102,2.1703,0.2933,Pro_Pre_B
+b_cell,3,81,1.4187,2.1293,Mature_B
+b_cell,4,72,2.4931,0.293,Pro_Pre_B
+b_cell,5,30,0.1854,0.1185,Pro_Pre_B
+b_cell,6,26,1.0602,3.5402,Mature_B

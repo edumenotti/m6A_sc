@@ -1,0 +1,9 @@
+compartment,subcluster,n_cells,pos_markers_mean,neg_markers_mean,level2_call
+erythroid,0,226,0.4529,1.7616,Erythroblast
+erythroid,1,151,0.4824,2.0223,Erythroblast
+erythroid,2,151,0.5338,2.0159,Erythroblast
+erythroid,3,137,0.632,2.0561,Erythroblast
+erythroid,4,124,0.4929,1.6752,Erythroblast
+erythroid,5,95,0.5653,1.3445,Erythroblast
+erythroid,6,93,0.5385,1.6026,Erythroblast
+erythroid,7,85,0.5004,1.7895,Erythroblast
