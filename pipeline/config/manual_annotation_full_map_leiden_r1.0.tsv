@@ -2,14 +2,14 @@ cluster_key	cluster	manual_level1	manual_level2	manual_annotation_confidence	man
 leiden_r1.0	0	granulocyte_neutrophil	Mature_neutrophil	high	ok	Mmp8/Retnlg/Mmp9/S100a8/S100a9; I gate dominant
 leiden_r1.0	1	granulocyte_neutrophil	Mature_neutrophil	high	ok	Ccl6/Tyrobp/Csf3r/Cxcr2/Clec4d; I gate dominant
 leiden_r1.0	2	myeloid_progenitor	GMP_neutrophil_primed	high	ok	Prtn3/Mpo/Elane/Ctsg/Plac8; azurophil granule program; Ltf/Ngp/Cxcr2 absent; LK gate
-leiden_r1.0	3	progenitor	Progenitor_ambiguous	low	high_mito_review	Adgrl4/Cd34/Angpt1 HSPC-like but mt-Co1 in top DE; LSK gate dominant; cannot subtype HSC/MPP/LMPP
+leiden_r1.0	3	progenitor	HSPC_MPP	medium	ieg_stress_artifact	Hlf/Msi2/Meis1/Etv6/Angpt1/Adgrl4/Adgrg1 confirm HSPC identity vs full dataset; IEG stress (Fos/Jun/Egr1) pervasive in all cells — dissociation artifact, not a distinct state; LSK gate
 leiden_r1.0	4	granulocyte_neutrophil	Immature_neutrophil	high	ok	Ltf/Anxa1/Ngp/Lcn2/Camp/Chil3; I gate dominant
 leiden_r1.0	5	myeloid_progenitor	GMP_neutrophil_primed	high	ok	Mpo/Ctsg/Elane/Prtn3/Ms4a3; Ms4a3=high-confidence GMP marker; LK gate
 leiden_r1.0	6	myeloid_progenitor	Progenitor_ambiguous	low	ambiguous_cmp_mep_basophil	Gata2/Angpt1/Apoe; popV=CMP(59%)/MEP(22%)/Bas(6%); basophil level1 score 0.66 too weak; heterogeneous LK cluster; cannot resolve without subset reclustering
 leiden_r1.0	7	cycling_myeloid	Cycling_myeloid	high	ok	Tubb5/Tuba1b/Birc5/H2afx/Pclaf/Aurkb/Top2a; LK gate
 leiden_r1.0	8	cycling_myeloid	Cycling_myeloid	high	ok	Top2a/Mki67/Smc4/Kif11/Knl1; LK gate
 leiden_r1.0	9	granulocyte_neutrophil	Immature_neutrophil	high	ok	S100a9/Camp/S100a8/Ngp/Wfdc21/Ifitm6/Lcn2; I gate dominant
-leiden_r1.0	10	progenitor	Progenitor_ambiguous	low	high_mito_review	mt-Co1/mt-Co3/mt-Co2/mt-Atp8 dominate top DE; mitochondrial content too high for progenitor subtyping; LSK gate
+leiden_r1.0	10	progenitor	HSPC_MPP	medium	ok	Hlf/Mecom/Procr/Ly6a/Kit/Cd34 confirm HSC-MPP identity; cleaner signature than cluster 3 (no IEG stress); LSK gate
 leiden_r1.0	11	granulocyte_neutrophil	Mature_neutrophil	medium	inflammatory_review	Csf3r/Il1b/Tyrobp/Malat1; Il1b and Malat1 suggest inflammatory or low-quality mature neutrophil; I gate
 leiden_r1.0	12	monocyte	Classical_monocyte	high	ok	Ctss/S100a4/Psap/Ccr2/Ahnak/Pld4; Ccr2/Ly6c2 canonical classical monocyte; I gate
 leiden_r1.0	13	erythroid	Erythroid_broad	medium	mep_vs_erythroblast_unresolvable	Car1/Blvrb/Car2/Klf1/Atpif1; clean erythroid program but MEP vs Erythroblast split not resolvable at r1.0 granularity (single cluster)

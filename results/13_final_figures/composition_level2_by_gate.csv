@@ -5,11 +5,12 @@ Cycling_myeloid,234,3386,691
 DC_broad,22,328,28
 Erythroid_broad,5,1017,40
 GMP_neutrophil_primed,278,6688,128
+HSPC_MPP,14,1785,3461
 Immature_neutrophil,6953,16,1
 Mature_B,463,0,1
 Mature_neutrophil,12110,0,1
 Plasma_cell,30,0,32
 Pro_Pre_B,313,24,6
-Progenitor_ambiguous,69,4193,3689
+Progenitor_ambiguous,55,2408,228
 T_cell_broad,299,2,13
 pDC,114,1,0

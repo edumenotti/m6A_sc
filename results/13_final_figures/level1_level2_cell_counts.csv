@@ -1,7 +1,7 @@
 manual_level1,manual_level2,n_cells,pct
-progenitor,Progenitor_ambiguous,5260,12.41
-myeloid_progenitor,Progenitor_ambiguous,2691,6.35
+progenitor,HSPC_MPP,5260,12.41
 myeloid_progenitor,GMP_neutrophil_primed,7094,16.74
+myeloid_progenitor,Progenitor_ambiguous,2691,6.35
 cycling_myeloid,Cycling_myeloid,4311,10.17
 DC,DC_broad,378,0.89
 DC,pDC,115,0.27
