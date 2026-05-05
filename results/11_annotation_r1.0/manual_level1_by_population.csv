@@ -1,0 +1,12 @@
+manual_level1,I,LK,LSK
+B_cell,776,24,7
+DC,136,329,28
+T_cell,299,2,13
+ambiguous_myeloid,89,4,26
+cycling_myeloid,234,3386,691
+erythroid,5,1017,40
+granulocyte_neutrophil,19063,16,2
+monocyte,1058,29,9
+myeloid_progenitor,333,9096,356
+plasma_cell,30,0,32
+progenitor,14,1785,3461

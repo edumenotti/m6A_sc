@@ -1,0 +1,24 @@
+cluster_key	cluster	manual_level1	manual_level2	manual_annotation_confidence	manual_review_flag	manual_annotation_basis
+leiden_r1.0	0	granulocyte_neutrophil	Mature_neutrophil	high	ok	Mmp8/Retnlg/Mmp9/S100a8/S100a9; I gate dominant
+leiden_r1.0	1	granulocyte_neutrophil	Mature_neutrophil	high	ok	Ccl6/Tyrobp/Csf3r/Cxcr2/Clec4d; I gate dominant
+leiden_r1.0	2	myeloid_progenitor	GMP_neutrophil_primed	high	ok	Prtn3/Mpo/Elane/Ctsg/Plac8; azurophil granule program; Ltf/Ngp/Cxcr2 absent; LK gate
+leiden_r1.0	3	progenitor	Progenitor_ambiguous	low	high_mito_review	Adgrl4/Cd34/Angpt1 HSPC-like but mt-Co1 in top DE; LSK gate dominant; cannot subtype HSC/MPP/LMPP
+leiden_r1.0	4	granulocyte_neutrophil	Immature_neutrophil	high	ok	Ltf/Anxa1/Ngp/Lcn2/Camp/Chil3; I gate dominant
+leiden_r1.0	5	myeloid_progenitor	GMP_neutrophil_primed	high	ok	Mpo/Ctsg/Elane/Prtn3/Ms4a3; Ms4a3=high-confidence GMP marker; LK gate
+leiden_r1.0	6	myeloid_progenitor	Progenitor_ambiguous	low	ambiguous_cmp_mep_basophil	Gata2/Angpt1/Apoe; popV=CMP(59%)/MEP(22%)/Bas(6%); basophil level1 score 0.66 too weak; heterogeneous LK cluster; cannot resolve without subset reclustering
+leiden_r1.0	7	cycling_myeloid	Cycling_myeloid	high	ok	Tubb5/Tuba1b/Birc5/H2afx/Pclaf/Aurkb/Top2a; LK gate
+leiden_r1.0	8	cycling_myeloid	Cycling_myeloid	high	ok	Top2a/Mki67/Smc4/Kif11/Knl1; LK gate
+leiden_r1.0	9	granulocyte_neutrophil	Immature_neutrophil	high	ok	S100a9/Camp/S100a8/Ngp/Wfdc21/Ifitm6/Lcn2; I gate dominant
+leiden_r1.0	10	progenitor	Progenitor_ambiguous	low	high_mito_review	mt-Co1/mt-Co3/mt-Co2/mt-Atp8 dominate top DE; mitochondrial content too high for progenitor subtyping; LSK gate
+leiden_r1.0	11	granulocyte_neutrophil	Mature_neutrophil	medium	inflammatory_review	Csf3r/Il1b/Tyrobp/Malat1; Il1b and Malat1 suggest inflammatory or low-quality mature neutrophil; I gate
+leiden_r1.0	12	monocyte	Classical_monocyte	high	ok	Ctss/S100a4/Psap/Ccr2/Ahnak/Pld4; Ccr2/Ly6c2 canonical classical monocyte; I gate
+leiden_r1.0	13	erythroid	Erythroid_broad	medium	mep_vs_erythroblast_unresolvable	Car1/Blvrb/Car2/Klf1/Atpif1; clean erythroid program but MEP vs Erythroblast split not resolvable at r1.0 granularity (single cluster)
+leiden_r1.0	14	granulocyte_neutrophil	Immature_neutrophil	high	ok	Hmgn2/Chil3/Camp/Fcnb/Hmgb2/Cebpe; Fcnb=neutrophil granule; I gate dominant
+leiden_r1.0	15	B_cell	B_cell_broad	medium	b_cell_subtype_unresolvable	Cd79a/Ighm/Ebf1/Bach2/Vpreb3/Pax5; Vpreb3 (pro-B) and H2-Aa (mature-B) co-present; Pro-Pre-B vs Mature-B NOT resolvable at r1.0 (single cluster, 807 cells)
+leiden_r1.0	16	granulocyte_neutrophil	Immature_neutrophil	high	ok	Chil3/Camp/Ngp/S100a8/Orm1/Lcn2; I gate dominant
+leiden_r1.0	17	DC	DC_broad	medium	cdc1_cdc2_review	Cst3/Irf8/Ifi205/Cd74/Id2/H2-Aa; Ifi205/Id2 suggest cDC1-biased but Clec9a/Xcr1 absent from top DE; classify DC_broad
+leiden_r1.0	18	T_cell	T_cell_broad	high	subtype_unresolvable	Tmsb10/Skap1/Ms4a4b/H2-Q7; T cell clear but CD4/CD8 absent from top DE; T cell subtype CANNOT be resolved at this depth
+leiden_r1.0	19	ambiguous_myeloid	Ambiguous	low	lineage_unresolvable	Malat1/Arhgap15/Dock2/Baz2b/Elmo1; lymphoid-migration program in I gate; cannot assign canonical lineage
+leiden_r1.0	20	DC	pDC	high	ok	Tcf4/Irf8/Bst2/Siglech; definitive pDC markers; I gate
+leiden_r1.0	21	granulocyte_neutrophil	Mature_neutrophil	low	small_cluster	Lgals3/Pfn1/Mmp8/Msrb1; 78 cells; Mmp8+I gate=mature; small cluster with low interpretive weight
+leiden_r1.0	22	plasma_cell	Plasma_cell	high	ok	Jchain/Mzb1/Xbp1/Igkc/Txndc5; canonical plasma cell; I gate
