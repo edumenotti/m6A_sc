@@ -9,6 +9,8 @@ include { ANNOTATE_HSPC }  from './modules/annotate_hspc'
 include { ANNOTATE_MATURE } from './modules/annotate_mature'
 include { RECONCILE_ANNOTATIONS } from './modules/reconcile_annotations'
 include { MARKERS }   from './modules/markers'
+include { PROGENITOR_RECLUSTER }       from './modules/progenitor_recluster'
+include { APPLY_PROGENITOR_ANNOTATION } from './modules/apply_progenitor_annotation'
 
 workflow {
     h5_ch = Channel.fromPath(params.h5_input, checkIfExists: true)
@@ -24,4 +26,20 @@ workflow {
     ANNOTATE_MATURE(CLUSTER.out.h5ad, mature_ref_ch)
     RECONCILE_ANNOTATIONS(ANNOTATE_HSPC.out.h5ad, ANNOTATE_MATURE.out.h5ad)
     MARKERS(RECONCILE_ANNOTATIONS.out.h5ad)
+
+    if (params.run_progenitor_recluster) {
+        prog_in_ch = Channel.fromPath(params.progenitor_input_h5ad, checkIfExists: true)
+        PROGENITOR_RECLUSTER(prog_in_ch)
+
+        map_file = file(params.progenitor_annotation_map)
+        if (map_file.exists()) {
+            APPLY_PROGENITOR_ANNOTATION(
+                prog_in_ch,
+                PROGENITOR_RECLUSTER.out.assignments,
+                Channel.fromPath(params.progenitor_annotation_map, checkIfExists: true)
+            )
+        } else {
+            log.info "[progenitor] Skipping APPLY_PROGENITOR_ANNOTATION — annotation map not found at ${params.progenitor_annotation_map}. Fill in the map after reviewing PROGENITOR_RECLUSTER outputs, then re-run."
+        }
+    }
 }
