@@ -10,7 +10,8 @@ process MANUAL_MARKER_REVIEW {
     output:
     path "*.png"
     path "*.csv"
-    path "*.json"
+    path "*.tsv"
+    path "*.md"
 
     script:
     """
