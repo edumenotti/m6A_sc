@@ -1,0 +1,16 @@
+# chosen_resolution: 0.4
+# Filled 2026-05-08 after marker-driven review of results/13_progenitor_recluster/.
+# Discriminators used: HSC panel (Hlf/Procr/Mecom/Ly6a/Mpl), Cd34 high vs low (HSC vs MPP),
+# primary granule program (Mpo/Ctsg/Prtn3) for GMP, Gata1/Klf1/Car1 for MEP_Erythroid,
+# Ms4a2/Hdc + Kit+/Cd34+/cycling for Basophil_prog,
+# Fcer1a/Cd200r3/Il4/Il6 + loss of Kit/Cd34 for mature Basophil.
+# Stress/IEG separation between sub 1 and sub 5 is a technical artifact — both are HSC.
+leiden_resolution	subcluster_id	n_cells	source_clusters_r1.0	marker_hits	new_level1	new_level2	confidence	notes
+0.4	0	1912	r1.0_10:2 r1.0_3:1869 r1.0_6:41	HSC=Hlf, Mecom; MPP=Cd34, Adgrl4	progenitor	MPP	high	Cd34 highest of HSC/MPP triad; Hlf/Mecom slightly lower than sub 1/5; MPP-leaning end of HSC-MPP gradient
+0.4	1	1223	r1.0_10:366 r1.0_3:849 r1.0_6:8	HSC=Hlf, Procr, Mecom, Ly6a, Mpl	progenitor	HSC	high	Full HSC panel; high IEG/stress is technical artifact, not biology
+0.4	2	1200	r1.0_10:140 r1.0_3:1042 r1.0_6:18	MPP=Cd34; GMP=Mpo, Ctsg, Prtn3	myeloid_progenitor	GMP	high	Committed GMP — Mpo/Ctsg/Prtn3/Elane all on; Cd34+/Kit+ retained; cycling; no secondary granules. Label simplified from GMP_myeloid_primed (redundant)
+0.4	3	1186	r1.0_10:2 r1.0_3:26 r1.0_6:1158	CMP=Gata2; MEP=Gata1, Car1	myeloid_progenitor	MEP_Erythroid	high	Gata1/Klf1/Car1 — clean erythroid/megakaryocyte branch from cluster 6
+0.4	4	897	r1.0_10:95 r1.0_3:71 r1.0_6:731	CMP=Itga2b	progenitor	Progenitor_ambiguous	low	Single-marker support (Itga2b only); insufficient to commit to a subtype
+0.4	5	791	r1.0_10:686 r1.0_3:99 r1.0_6:6	HSC=Hlf, Mecom; MPP=Cd34, Adgrl4; CMP=Angpt1	progenitor	HSC	high	Cleanest HSC — same Hlf/Mecom as sub 1 but without IEG/stress overlay
+0.4	6	711	r1.0_10:6 r1.0_3:7 r1.0_6:698	CMP=Gata2; Basophil_prog=Ms4a2, Hdc	progenitor	Basophil_prog	high	Ms4a2/Hdc + Kit+/Cd34+ retained, Top2a/Mki67 cycling, low Fcer1a/Cd200r3/Il4/Il6 — true basophil progenitor. Gata2 not discriminative (broadly expressed).
+0.4	7	31	r1.0_10:0 r1.0_3:0 r1.0_6:31	Basophil_prog=Hdc	basophil	Basophil	high	Mature basophil (n=31): Fcer1a 97%, Cd200r3 100%, Il4 71%, Il6 61%, Kit/Cd34 = 0%. Terminally differentiated.
