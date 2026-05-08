@@ -338,7 +338,8 @@ def main(in_path: str, out_dir: str, cluster_key: str, marker_db: str, layer: st
         plt.close()
         de = sc.get.rank_genes_groups_df(adata, group=None)
         de.to_csv(out / "de_genes_per_cluster.csv", index=False)
-        de.loc[de["group"].astype(str).isin(watchlist)].to_csv(out / "watchlist_de_genes.csv", index=False)
+        if watchlist:
+            de.loc[de["group"].astype(str).isin(watchlist)].to_csv(out / "watchlist_de_genes.csv", index=False)
     print(f"Saved marker validation outputs to {out}")
 
 

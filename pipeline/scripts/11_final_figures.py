@@ -194,5 +194,5 @@ def main(args: argparse.Namespace) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", default="results/12_subset_recluster/adata_annotated_final.h5ad")
-    parser.add_argument("--out", default="results/13_final_figures")
+    parser.add_argument("--out", default="results/11_final_figures")
     main(parser.parse_args())

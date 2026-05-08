@@ -133,7 +133,10 @@ def main(in_path: str, out_dir: str, resolution: float, resolutions: list[float]
 
     adata.write_h5ad(out / "adata_clustered.h5ad")
     key = f"leiden_r{format_resolution(resolution)}"
-    print(f"Leiden r={resolution}: {adata.obs[key].nunique()} clusters")
+    if key in adata.obs:
+        print(f"Leiden r={resolution}: {adata.obs[key].nunique()} clusters")
+    else:
+        print(f"Leiden r={resolution} not in --resolutions list; skipping summary line.")
     print(f"Saved: {out / 'adata_clustered.h5ad'}")
 
 
