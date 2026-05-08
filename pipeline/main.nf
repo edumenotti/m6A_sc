@@ -12,11 +12,18 @@
 /*
  * Charles scRNA-seq pipeline — main workflow.
  *
- * Linear pipeline (always runs):
- *   QC → DOUBLETS → NORMALIZE → INTEGRATE → CLUSTER →
- *   ANNOTATE_HSPC + ANNOTATE_MATURE → RECONCILE_ANNOTATIONS → MARKERS
+ * Always runs:
+ *   QC → DOUBLETS → NORMALIZE → INTEGRATE → CLUSTER → MARKERS →
+ *   MANUAL_MARKER_REVIEW → APPLY_MANUAL_ANNOTATION → SUBSET_RECLUSTER → FINAL_FIGURES
  *
- * Optional progenitor sub-workflow (when run_progenitor_recluster=true):
+ * Optional reference-based annotation (run_label_transfer=true):
+ *   CLUSTER → ANNOTATE_HSPC + ANNOTATE_MATURE → RECONCILE_ANNOTATIONS
+ *   Produces popv_prediction / scanvi_label / final_cell_type as context for
+ *   MANUAL_MARKER_REVIEW. The manual_level1/level2 labels in the final h5ad
+ *   come from the human-filled annotation map (script 10), not from popV, so
+ *   this step is informational. Default off to save GPU time.
+ *
+ * Optional progenitor sub-workflow (run_progenitor_recluster=true):
  *   PROGENITOR_RECLUSTER  — diagnostic only; produces annotation_template.tsv
  *   [HUMAN REVIEW]        — fill pipeline/config/progenitor_annotation_map.tsv
  *                           with chosen_resolution comment + level1/level2 labels
@@ -47,21 +54,38 @@ include { APPLY_PROGENITOR_ANNOTATION } from './modules/apply_progenitor_annotat
 
 workflow {
     h5_ch = Channel.fromPath(params.h5_input, checkIfExists: true)
-    hspc_ref_ch = Channel.fromPath(params.hspc_ref_h5ad, checkIfExists: true)
-    mature_ref_ch = Channel.fromPath(params.mature_ref_h5ad, checkIfExists: true)
 
     QC(h5_ch)
     DOUBLETS(QC.out.h5ad)
     NORMALIZE(DOUBLETS.out.h5ad)
     INTEGRATE(NORMALIZE.out.h5ad)
     CLUSTER(INTEGRATE.out.h5ad)
-    ANNOTATE_HSPC(CLUSTER.out.h5ad, hspc_ref_ch)
-    ANNOTATE_MATURE(CLUSTER.out.h5ad, mature_ref_ch)
-    RECONCILE_ANNOTATIONS(ANNOTATE_HSPC.out.h5ad, ANNOTATE_MATURE.out.h5ad)
-    MARKERS(RECONCILE_ANNOTATIONS.out.h5ad)
 
     /*
-     * Post-reconciliation annotation sub-workflow (scripts 09–12):
+     * Optional reference-based annotation (run_label_transfer):
+     * If enabled, runs popV against the Nestorowa (HSPC) and Kucinski (mature)
+     * references and reconciles them. The reconciled h5ad carries popV/scanvi
+     * columns + a 'final_cell_type' that the manual review (script 09) uses as
+     * context. Manual labels (script 10) override these regardless.
+     * If disabled, the cluster output is fed directly into MARKERS / manual review;
+     * scripts 09 and 10 already guard their popV/final_cell_type lookups with
+     * `if col in obs:`, so the missing columns are handled gracefully.
+     */
+    if (params.run_label_transfer) {
+        hspc_ref_ch = Channel.fromPath(params.hspc_ref_h5ad, checkIfExists: true)
+        mature_ref_ch = Channel.fromPath(params.mature_ref_h5ad, checkIfExists: true)
+        ANNOTATE_HSPC(CLUSTER.out.h5ad, hspc_ref_ch)
+        ANNOTATE_MATURE(CLUSTER.out.h5ad, mature_ref_ch)
+        RECONCILE_ANNOTATIONS(ANNOTATE_HSPC.out.h5ad, ANNOTATE_MATURE.out.h5ad)
+        annotated_h5ad_ch = RECONCILE_ANNOTATIONS.out.h5ad
+    } else {
+        annotated_h5ad_ch = CLUSTER.out.h5ad
+    }
+
+    MARKERS(annotated_h5ad_ch)
+
+    /*
+     * Post-cluster annotation sub-workflow (scripts 09–12):
      *   MANUAL_MARKER_REVIEW  — produces diagnostics for human review
      *   [HUMAN: fill pipeline/config/manual_annotation_level1_map_leiden_r2.0.tsv]
      *   APPLY_MANUAL_ANNOTATION — applies filled map; map is committed so this always runs
@@ -70,8 +94,8 @@ workflow {
      */
     annotation_map_ch = Channel.fromPath(params.manual_annotation_map, checkIfExists: true)
 
-    MANUAL_MARKER_REVIEW(RECONCILE_ANNOTATIONS.out.h5ad)
-    APPLY_MANUAL_ANNOTATION(RECONCILE_ANNOTATIONS.out.h5ad, annotation_map_ch)
+    MANUAL_MARKER_REVIEW(annotated_h5ad_ch)
+    APPLY_MANUAL_ANNOTATION(annotated_h5ad_ch, annotation_map_ch)
     SUBSET_RECLUSTER(APPLY_MANUAL_ANNOTATION.out.h5ad)
     FINAL_FIGURES(SUBSET_RECLUSTER.out.h5ad)
 
