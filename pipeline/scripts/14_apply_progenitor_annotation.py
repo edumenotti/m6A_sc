@@ -28,13 +28,19 @@ import scanpy as sc
 sc.settings.verbosity = 1
 
 
-def read_chosen_resolution(map_path: str) -> float:
-    """Parse the # chosen_resolution: X.X comment from the TSV header."""
+def read_chosen_resolution(map_path: str) -> str:
+    """Parse the # chosen_resolution: X.X comment from the TSV header.
+
+    Returns the raw string (e.g. "0.4") rather than a float, to avoid
+    float-string round-trip mismatches when looking up
+    `leiden_sub_r{chosen_res}` columns or filtering the map TSV's
+    `leiden_resolution` column (where "0.4" and "0.40" must match).
+    """
     with open(map_path) as f:
         for line in f:
             m = re.match(r"#\s*chosen_resolution:\s*([0-9.]+)", line.strip())
             if m:
-                return float(m.group(1))
+                return m.group(1)
     raise ValueError(
         f"No '# chosen_resolution: X.X' comment found in {map_path}.\n"
         "Add a comment line at the top of the file, e.g.:\n"
@@ -66,7 +72,15 @@ def main(args: argparse.Namespace) -> None:
 
     # ── Load map ─────────────────────────────────────────────────────────────
     map_df = pd.read_csv(args.map, sep="\t", comment="#")
-    map_df = map_df[map_df["leiden_resolution"].astype(str) == str(chosen_res)].copy()
+    # Compare resolutions as floats so "0.4" and "0.40" both match.
+    map_df = map_df[
+        pd.to_numeric(map_df["leiden_resolution"], errors="coerce") == float(chosen_res)
+    ].copy()
+    if map_df.empty:
+        raise ValueError(
+            f"No rows in {args.map} match leiden_resolution={chosen_res}. "
+            "Check the # chosen_resolution comment and the leiden_resolution column."
+        )
     map_df["subcluster_id"] = map_df["subcluster_id"].astype(str)
     required = {"leiden_resolution", "subcluster_id", "new_level1", "new_level2"}
     missing = required - set(map_df.columns)
@@ -79,7 +93,12 @@ def main(args: argparse.Namespace) -> None:
         )
 
     subcluster_to_level1 = dict(zip(map_df["subcluster_id"], map_df["new_level1"]))
-    subcluster_to_level2 = dict(zip(map_df["subcluster_id"], map_df["new_level2"]))
+    # Drop rows where new_level2 is missing/empty so we don't silently overwrite
+    # a previously valid manual_level2 with NaN/"".
+    level2_valid = map_df.loc[
+        map_df["new_level2"].notna() & (map_df["new_level2"].astype(str) != "")
+    ]
+    subcluster_to_level2 = dict(zip(level2_valid["subcluster_id"], level2_valid["new_level2"]))
     print(f"Annotation map loaded: {len(subcluster_to_level1)} cluster mappings")
     for k, v in subcluster_to_level1.items():
         print(f"  subcluster {k} → level1={v}, level2={subcluster_to_level2.get(k)}")
