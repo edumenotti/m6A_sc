@@ -1,0 +1,80 @@
+cell_type	marker	direction	category	source	note
+HSC_MPP	Hlf	positive	HSPC	Nestorowa2016_Olsson2016_manual	HSC/MPP stemness-associated transcription factor
+HSC_MPP	Mecom	positive	HSPC	Nestorowa2016_Olsson2016_manual	HSC/MPP enriched transcription factor
+HSC_MPP	Procr	positive	HSPC	Nestorowa2016_Olsson2016_manual	EPCR, enriched in primitive HSCs
+HSC_MPP	Mpl	positive	HSPC	Nestorowa2016_Olsson2016_manual	Thrombopoietin receptor
+HSC_MPP	Kit	positive	HSPC	Nestorowa2016_Olsson2016_manual	c-Kit, HSPC gate marker
+HSC_MPP	Ly6a	positive	HSPC	Nestorowa2016_Olsson2016_manual	Sca1, LSK gate marker
+HSC_MPP	Slamf1	positive	HSPC	Nestorowa2016_Olsson2016_manual	CD150, HSC-enriched
+MPP_LMPP	Flt3	positive	HSPC	Nestorowa2016_Olsson2016_manual	MPP/LMPP and lymphoid-primed progenitors
+MPP_LMPP	Cd34	positive	HSPC	Nestorowa2016_Olsson2016_manual	Progenitor-enriched
+MPP_LMPP	Dntt	positive	HSPC	Nestorowa2016_Olsson2016_manual	Lymphoid priming
+MPP_LMPP	Il7r	positive	HSPC	Nestorowa2016_Olsson2016_manual	Lymphoid priming
+CMP_GMP	Cd34	positive	Myeloid progenitor	Nestorowa2016_Olsson2016_manual	Myeloid progenitors
+CMP_GMP	Fcgr3	positive	Myeloid progenitor	Nestorowa2016_Olsson2016_manual	CD16/32, GMP-enriched
+CMP_GMP	Fcgr2b	positive	Myeloid progenitor	Nestorowa2016_Olsson2016_manual	CD16/32-related
+CMP_GMP	Cebpa	positive	Myeloid progenitor	Nestorowa2016_Olsson2016_manual	Myeloid transcription factor
+CMP_GMP	Mpo	positive	Myeloid progenitor	Nestorowa2016_Olsson2016_manual	Granulocyte/myeloid priming
+MEP_Erythroid	Gata1	positive	Erythroid/MEP	Nestorowa2016_Olsson2016_manual	Erythroid/MEP transcription factor
+MEP_Erythroid	Klf1	positive	Erythroid/MEP	Nestorowa2016_Olsson2016_manual	Erythroid transcription factor
+MEP_Erythroid	Gypa	positive	Erythroid/MEP	Nestorowa2016_Olsson2016_manual	Erythroid surface marker
+MEP_Erythroid	Car2	positive	Erythroid/MEP	Nestorowa2016_Olsson2016_manual	Erythroid maturation
+MEP_Erythroid	Hba-a1	positive	Erythroid/MEP	Nestorowa2016_Olsson2016_manual	Hemoglobin alpha
+MEP_Erythroid	Hbb-bs	positive	Erythroid/MEP	Nestorowa2016_Olsson2016_manual	Hemoglobin beta
+Megakaryocyte	Pf4	positive	Megakaryocyte	Nestorowa2016_Olsson2016_manual	Platelet factor 4
+Megakaryocyte	Itga2b	positive	Megakaryocyte	Nestorowa2016_Olsson2016_manual	CD41
+Megakaryocyte	Vwf	positive	Megakaryocyte	Nestorowa2016_Olsson2016_manual	Megakaryocyte/endothelial-associated
+Megakaryocyte	Ppbp	positive	Megakaryocyte	Nestorowa2016_Olsson2016_manual	Megakaryocyte/platelet-associated
+Granulocyte_Neutrophil	Elane	positive	Granulocyte	Nestorowa2016_Olsson2016_manual	Neutrophil granule enzyme
+Granulocyte_Neutrophil	Mpo	positive	Granulocyte	Nestorowa2016_Olsson2016_manual	Myeloperoxidase
+Granulocyte_Neutrophil	Cebpe	positive	Granulocyte	Nestorowa2016_Olsson2016_manual	Granulocyte transcription factor
+Granulocyte_Neutrophil	Csf3r	positive	Granulocyte	Nestorowa2016_Olsson2016_manual	G-CSF receptor
+Granulocyte_Neutrophil	S100a8	positive	Granulocyte	Nestorowa2016_Olsson2016_manual	Mature granulocyte/monocyte inflammatory marker
+Granulocyte_Neutrophil	S100a9	positive	Granulocyte	Nestorowa2016_Olsson2016_manual	Mature granulocyte/monocyte inflammatory marker
+Granulocyte_Neutrophil	Retnlg	positive	Granulocyte	Nestorowa2016_Olsson2016_manual	Neutrophil-associated
+Monocyte	Spic	positive	Monocyte/DC	Nestorowa2016_Olsson2016_manual	Monocyte/macrophage-associated transcription factor
+Monocyte	Csf1r	positive	Monocyte/DC	Nestorowa2016_Olsson2016_manual	M-CSF receptor
+Monocyte	Ly6c2	positive	Monocyte/DC	Nestorowa2016_Olsson2016_manual	Classical monocyte-associated
+Monocyte	Ccr2	positive	Monocyte/DC	Nestorowa2016_Olsson2016_manual	Classical monocyte-associated
+Monocyte	Lyz2	positive	Monocyte/DC	Nestorowa2016_Olsson2016_manual	Myeloid/monocyte marker
+DC	Flt3	positive	DC	Nestorowa2016_Olsson2016_manual	DC progenitor-associated
+DC	Irf8	positive	DC	Nestorowa2016_Olsson2016_manual	DC/monocyte transcription factor
+DC	Siglech	positive	DC	Nestorowa2016_Olsson2016_manual	pDC-associated
+DC	Bst2	positive	DC	Nestorowa2016_Olsson2016_manual	pDC-associated
+DC	Cd74	positive	DC	Nestorowa2016_Olsson2016_manual	Antigen presentation
+Basophil_Mast	Mcpt8	positive	Basophil/mast	Nestorowa2016_Olsson2016_manual	Basophil marker
+Basophil_Mast	Il4	positive	Basophil/mast	Nestorowa2016_Olsson2016_manual	Basophil/mast cytokine
+Basophil_Mast	Prss34	positive	Basophil/mast	Nestorowa2016_Olsson2016_manual	Basophil/mast-associated
+B_cell	Cd79a	positive	Mature lymphoid	manual_marker_review	B-cell receptor component
+B_cell	Cd79b	positive	Mature lymphoid	manual_marker_review	B-cell receptor component
+B_cell	Ms4a1	positive	Mature lymphoid	manual_marker_review	CD20
+B_cell	Ebf1	positive	Mature lymphoid	manual_marker_review	B-lineage transcription factor
+B_cell	Pax5	positive	Mature lymphoid	manual_marker_review	B-lineage transcription factor
+B_cell	Ighm	positive	Mature lymphoid	manual_marker_review	Naive/immature B-cell immunoglobulin
+T_cell	Cd3d	positive	Mature lymphoid	manual_marker_review	T-cell receptor complex
+T_cell	Cd3e	positive	Mature lymphoid	manual_marker_review	T-cell receptor complex
+T_cell	Cd3g	positive	Mature lymphoid	manual_marker_review	T-cell receptor complex
+T_cell	Trac	positive	Mature lymphoid	manual_marker_review	TCR alpha constant
+T_cell	Lck	positive	Mature lymphoid	manual_marker_review	T-cell signaling
+T_cell	Skap1	positive	Mature lymphoid	manual_marker_review	T-cell signaling
+NK_cell	Nkg7	positive	Mature lymphoid	manual_marker_review	NK/cytotoxic lymphocyte marker
+NK_cell	Klrb1c	positive	Mature lymphoid	manual_marker_review	NK1.1 in mouse
+NK_cell	Gzma	positive	Mature lymphoid	manual_marker_review	Cytotoxic granule marker
+NK_cell	Prf1	positive	Mature lymphoid	manual_marker_review	Cytotoxic granule marker
+Plasma_cell	Jchain	positive	Mature lymphoid	manual_marker_review	Plasma cell/immunoglobulin secretion
+Plasma_cell	Xbp1	positive	Mature lymphoid	manual_marker_review	Plasma cell unfolded protein response
+Plasma_cell	Mzb1	positive	Mature lymphoid	manual_marker_review	Plasma cell marker
+Plasma_cell	Igkc	positive	Mature lymphoid	manual_marker_review	Immunoglobulin kappa constant
+Cycling	Mki67	positive	Cell cycle	manual_marker_review	Proliferation
+Cycling	Top2a	positive	Cell cycle	manual_marker_review	Proliferation
+Cycling	Pcna	positive	Cell cycle	manual_marker_review	DNA replication
+Cycling	Birc5	positive	Cell cycle	manual_marker_review	Mitosis
+Stress_Response	Fos	positive	QC/stress	manual_marker_review	Immediate early/stress response
+Stress_Response	Jun	positive	QC/stress	manual_marker_review	Immediate early/stress response
+Stress_Response	Dusp1	positive	QC/stress	manual_marker_review	Immediate early/stress response
+Stress_Response	Hspa1a	positive	QC/stress	manual_marker_review	Heat shock
+Stress_Response	Hspa1b	positive	QC/stress	manual_marker_review	Heat shock
+Low_Quality_Ambient	Malat1	positive	QC/stress	manual_marker_review	Nuclear/ambient-sensitive abundant transcript
+Low_Quality_Ambient	mt-Co1	positive	QC/stress	manual_marker_review	Mitochondrial transcript
+Low_Quality_Ambient	mt-Co2	positive	QC/stress	manual_marker_review	Mitochondrial transcript
+Low_Quality_Ambient	mt-Cytb	positive	QC/stress	manual_marker_review	Mitochondrial transcript

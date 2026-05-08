@@ -1,0 +1,37 @@
+cluster_key	cluster	manual_level1	manual_annotation_confidence	manual_review_flag	manual_annotation_basis
+leiden_r2.0	0	granulocyte_neutrophil	high	review_neutrophil_burden	Ltf/Ngp/S100a8/S100a9/Mmp8 support granulocyte-neutrophil identity
+leiden_r2.0	1	granulocyte_neutrophil	high	review_neutrophil_burden	Csf3r/Cxcr2/Retnlg/S100a8/S100a9 support neutrophil-like identity
+leiden_r2.0	2	granulocyte_neutrophil	high	review_neutrophil_burden	Retnlg/Mmp8/Mmp9/S100a8/S100a9 support neutrophil-like identity
+leiden_r2.0	3	progenitor	low	ambiguous_progenitor_vs_granulocyte	Cd34/Adgrl4/Angpt1/Hlf/Kit-like signal with conflicting early myeloid markers
+leiden_r2.0	4	myeloid_progenitor	medium	early_granulocyte_monocyte_review	Mpo/Elane/Prtn3 plus Irf8/Ms4a6c/F13a1; avoid mature neutrophil call
+leiden_r2.0	5	granulocyte_neutrophil	high	review_neutrophil_burden	Ltf/Ngp/Retnlg/Mmp8/Mmp9 support granulocyte-neutrophil identity
+leiden_r2.0	6	cycling_myeloid	medium	cycling_granulocyte_progenitor_review	Mki67/Top2a proliferation with Mpo/Elane/Prtn3 myeloid signal
+leiden_r2.0	7	myeloid_progenitor	medium	early_granulocyte_review	Mpo/Elane/Prtn3 strong but terminal neutrophil markers weak
+leiden_r2.0	8	granulocyte_neutrophil	high	review_neutrophil_burden	Csf3r/Cxcr2/Retnlg/S100a8/S100a9 support neutrophil-like identity
+leiden_r2.0	9	myeloid_progenitor	medium	early_granulocyte_review	Mpo/Elane/Prtn3 strong but terminal neutrophil markers weak
+leiden_r2.0	10	granulocyte_neutrophil	high	review_neutrophil_burden	Ltf/Ngp/S100a8/S100a9 support granulocyte-neutrophil identity
+leiden_r2.0	11	cycling_myeloid	low	cycling_myeloid_review	Mki67/Top2a/Tpx2 cycling signal with mixed progenitor and granulocytic markers
+leiden_r2.0	12	granulocyte_neutrophil	high	review_neutrophil_burden	Csf3r/S100a8/S100a9/Retnlg support neutrophil-like identity
+leiden_r2.0	13	erythroid	medium	erythroid_progenitor_review	Gata1/Car2 erythroid signal but top DE genes include Apoe/ribosomal genes
+leiden_r2.0	14	myeloid_progenitor	medium	early_granulocyte_review	Mpo/Elane/Prtn3/Ms4a3 support early granulocytic myeloid state
+leiden_r2.0	15	progenitor	medium	cmp_candidate	Adgrg1/Gata2/Itga2b/Sox4 and HSPC-like marker signal
+leiden_r2.0	16	granulocyte_neutrophil	high	review_neutrophil_burden	Retnlg/S100a8/S100a9/Mmp8 support neutrophil-like identity
+leiden_r2.0	17	progenitor	high	hsc_mpp_candidate	Hlf/Kit/Ly6a/Mecom/Procr support HSC-MPP-like progenitor identity
+leiden_r2.0	18	monocyte	high	ok	Ccr2/Ly6c2/Ctss/Psap support monocyte identity
+leiden_r2.0	19	granulocyte_neutrophil	high	review_neutrophil_burden	Ltf/Ngp/Camp/Chil3 support granulocyte-neutrophil identity
+leiden_r2.0	20	megakaryocyte	high	ok	Itga2b/Pf4/Gng11/Vwf support megakaryocyte identity
+leiden_r2.0	21	cycling_myeloid	low	cycling_myeloid_review	Mki67/Top2a/cell-cycle signal with mixed progenitor and myeloid markers
+leiden_r2.0	22	basophil	high	ok	Cpa3/Ms4a2/Gata2 support basophil or basophil-progenitor identity
+leiden_r2.0	23	granulocyte_neutrophil	high	review_neutrophil_burden	Retnlg/Mmp8/Mmp9/Ngp support granulocyte-neutrophil identity
+leiden_r2.0	24	erythroid	high	ok	Car2/Gata1/Klf1/Blvrb support erythroid identity
+leiden_r2.0	25	granulocyte_neutrophil	high	review_neutrophil_burden	Ltf/Ngp/S100a8/S100a9 support granulocyte-neutrophil identity
+leiden_r2.0	26	B_cell	high	ok	Cd79a/Ebf1/Ighm/Pax5 support B-cell identity
+leiden_r2.0	27	B_cell	high	ok	Cd79a/Ighm/H2-Aa/H2-Eb1 support B-cell identity
+leiden_r2.0	28	DC	high	ok	Irf8/Cst3/Cd74/MHC-II support dendritic-cell identity
+leiden_r2.0	29	T_cell	high	ok	Cd3d/Skap1/Ms4a4b support T-cell identity
+leiden_r2.0	30	progenitor	low	ambiguous_progenitor_vs_granulocyte	Cd34/Adgrl4/Lmo2/Hlf-like signal with conflicting early myeloid markers
+leiden_r2.0	31	ambiguous_myeloid	low	ambiguous_low_confidence	Low-confidence mixed myeloid/progenitor signal; no hard lineage call
+leiden_r2.0	32	DC	high	pdc_candidate	Siglech/Bst2/Irf8 support plasmacytoid DC within DC level1
+leiden_r2.0	33	granulocyte_neutrophil	medium	small_cluster_neutrophil_candidate	Small cluster with Mmp8/Retnlg/Ltf/Ngp support
+leiden_r2.0	34	plasma_cell	high	ok	Jchain/Xbp1/Mzb1/Igkc support plasma-cell identity
+leiden_r2.0	35	granulocyte_neutrophil	medium	tiny_cluster_neutrophil_candidate	Tiny cluster with Ltf/Ngp/Camp support

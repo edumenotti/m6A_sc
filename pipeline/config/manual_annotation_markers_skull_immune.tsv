@@ -1,0 +1,177 @@
+level1	level2	marker	role	source	priority	note
+progenitors	HSC_MPP	Hlf	positive	Charles_current	high	HSC/MPP stemness marker retained from current catalog
+progenitors	HSC_MPP	Mecom	positive	Charles_current	high	HSC/MPP primitive marker
+progenitors	HSC_MPP	Procr	positive	Charles_current	high	EPCR; primitive HSC marker
+progenitors	HSC_MPP	Mpl	positive	Charles_current	medium	Thrombopoietin receptor
+progenitors	HSC_MPP	Kit	positive	Charles_current	high	HSPC marker; also appears in some immature/cycling populations
+progenitors	HSC_MPP	Ly6a	positive	Charles_current	high	Sca1/LSK marker
+progenitors	HSC_MPP	Slamf1	positive	Charles_current	medium	CD150; HSC-enriched
+progenitors	HSC_MPP	Adgrl4	positive	skull_immune_dotplot	medium	Used for hematopoietic stem cell in skull_immune
+progenitors	MPP_LMPP	Flt3	positive	Charles_current	high	MPP/LMPP and DC progenitor-associated; interpret with DC markers
+progenitors	MPP_LMPP	Cd34	positive	Charles_current	high	Progenitor-enriched
+progenitors	MPP_LMPP	Dntt	positive	Charles_current	medium	Lymphoid priming
+progenitors	MPP_LMPP	Il7r	positive	Charles_current	medium	Lymphoid priming
+progenitors	CMP	Sox4	positive	skull_immune_dotplot	medium	Common myeloid progenitor marker in skull_immune
+progenitors	CMP	Itga2b	positive	skull_immune_dotplot	medium	CMP/megakaryocyte-associated; interpret with megakaryocyte markers
+progenitors	CMP	Gata2	positive	skull_immune_dotplot	medium	Progenitor/basophil-associated transcription factor
+progenitors	CMP	Adgrg1	positive	skull_immune_dotplot	medium	Common myeloid progenitor marker in skull_immune
+progenitors	GMP	Cd34	positive	Charles_current	high	Myeloid progenitor marker
+progenitors	GMP	Fcgr3	positive	Charles_current	high	CD16; GMP/classical myeloid
+progenitors	GMP	Fcgr2b	positive	Charles_current	medium	CD16/32-related
+progenitors	GMP	Cebpa	positive	Charles_current	high	Myeloid transcription factor
+progenitors	GMP	Mpo	positive	Charles_current	high	Myeloid/granulocyte priming
+progenitors	GMP	Ctsg	positive	skull_immune_dotplot	high	Granulocyte-monocyte progenitor marker in skull_immune
+progenitors	GMP	Prtn3	positive	skull_immune_dotplot	high	GMP/pro-neutrophil marker
+progenitors	Neutrophil_primed_GMP	Fcnb	positive	skull_immune_dotplot	high	Neutrophil-primed GMP marker in skull_immune
+progenitors	Neutrophil_primed_GMP	Camp	positive	skull_immune_dotplot	high	Neutrophil priming/maturation
+progenitors	Neutrophil_primed_GMP	Anxa1	positive	skull_immune_dotplot	medium	Neutrophil-primed GMP marker in skull_immune
+progenitors	Neutrophil_primed_GMP	Lcn2	positive	skull_immune_dotplot	high	Neutrophil maturation/inflammation marker
+progenitors	Monocyte_primed_GMP	F13a1	positive	skull_immune_dotplot	high	Monocyte-primed GMP marker in skull_immune
+progenitors	Monocyte_primed_GMP	Klf4	positive	skull_immune_dotplot	high	Monocyte lineage priming
+progenitors	Monocyte_primed_GMP	Prc1	positive	skull_immune_dotplot	medium	Cell-cycle-associated monocyte-primed GMP marker
+progenitors	Monocyte_primed_GMP	Nusap1	positive	skull_immune_dotplot	medium	Cell-cycle-associated monocyte-primed GMP marker
+progenitors	Monocyte_primed_GMP	Top2a	positive	skull_immune_dotplot	medium	Use as cycling overlay, not lineage alone
+neutrophil	Neutrophil_broad	S100a9	positive	skull_immune_dotplot	high	Broad neutrophil marker
+neutrophil	Neutrophil_broad	S100a8	positive	skull_immune_dotplot	high	Broad neutrophil marker
+neutrophil	Neutrophil_broad	Elane	positive	Charles_current	high	Granule enzyme; early neutrophil/GMP
+neutrophil	Neutrophil_broad	Mpo	positive	Charles_current	high	Myeloperoxidase
+neutrophil	Neutrophil_broad	Cebpe	positive	Charles_current	high	Granulocyte transcription factor
+neutrophil	Neutrophil_broad	Csf3r	positive	Charles_current	high	G-CSF receptor
+neutrophil	Neutrophil_broad	Retnlg	positive	Charles_current	high	Mature neutrophil-associated; strong in Charles r1.0 cluster 0
+neutrophil	Pro_neutrophil	Mki67	positive	skull_immune_dotplot	medium	Proliferative pro-neutrophil marker; use with lineage markers
+neutrophil	Pro_neutrophil	Top2a	positive	skull_immune_dotplot	medium	Proliferative pro-neutrophil marker; use with lineage markers
+neutrophil	Pro_neutrophil	Cebpe	positive	skull_immune_dotplot	high	Pro-neutrophil/granulocyte marker
+neutrophil	Pre_neutrophil	Ptma	positive	skull_immune_dotplot	medium	Pre-neutrophil marker in skull_immune
+neutrophil	Pre_neutrophil	Rpl3	positive	skull_immune_dotplot	low	Ribosomal marker; weak specificity
+neutrophil	Immature_neutrophil	Ngp	positive	skull_immune_dotplot	high	Immature neutrophil marker
+neutrophil	Immature_neutrophil	Ltf	positive	skull_immune_dotplot	high	Immature neutrophil marker
+neutrophil	Mature_neutrophil	Ccl6	positive	skull_immune_dotplot	high	Mature neutrophil marker
+neutrophil	Mature_neutrophil	Cxcr2	positive	skull_immune_dotplot	high	Mature neutrophil marker
+neutrophil	Mature_neutrophil	Mmp8	positive	Charles_r1_DE	high	Top DE in Charles r1.0 neutrophil-like cluster 0
+neutrophil	Mature_neutrophil	Mmp9	positive	Charles_r1_DE	medium	Top DE in Charles r1.0 neutrophil-like cluster 0
+monocyte	Monocyte_broad	Ccr2	positive	skull_immune_dotplot	high	Broad/classical monocyte marker
+monocyte	Monocyte_broad	Fn1	positive	skull_immune_dotplot	medium	Monocyte marker in skull_immune
+monocyte	Monocyte_broad	Hopx	positive	skull_immune_dotplot	medium	Monocyte marker in skull_immune
+monocyte	Monocyte_broad	Csf1r	positive	Charles_current	high	M-CSF receptor
+monocyte	Monocyte_broad	Ly6c2	positive	Charles_current	high	Classical monocyte marker
+monocyte	Monocyte_broad	Lyz2	positive	Charles_current	medium	Myeloid/monocyte marker
+monocyte	Monocyte_broad	Spic	positive	Charles_current	medium	Monocyte/macrophage-associated transcription factor
+monocyte	Monocyte_progenitor	Stmn1	positive	skull_immune_dotplot	medium	Monocyte progenitor marker; use with cycling context
+monocyte	Monocyte_progenitor	Mki67	positive	skull_immune_dotplot	medium	Proliferative monocyte progenitor marker
+monocyte	Monocyte_progenitor	Ptma	positive	skull_immune_dotplot	low	Weak specificity
+monocyte	Monocyte_progenitor	H2afz	positive	skull_immune_dotplot	medium	Progenitor/cycling-associated
+monocyte	Classical_monocyte	Vcan	positive	skull_immune_dotplot	high	Classical monocyte marker
+monocyte	Classical_monocyte	Ms4a8a	positive	skull_immune_dotplot	high	Classical monocyte marker
+monocyte	Classical_monocyte	Chil3	positive	skull_immune_dotplot	medium	Classical/inflammatory myeloid marker
+monocyte	Classical_monocyte	Cd14	positive	skull_immune_dotplot	high	Classical monocyte marker
+monocyte	Nonclassical_monocyte	Cx3cr1	positive	skull_immune_dotplot	high	Non-classical monocyte marker
+monocyte	Nonclassical_monocyte	Hpgd	positive	skull_immune_dotplot	medium	Non-classical monocyte marker
+DC	DC_broad	Flt3	positive	skull_immune_dotplot	high	DC/progenitor marker; require Irf8 or subset markers
+DC	DC_broad	Irf8	positive	skull_immune_dotplot	high	DC/monocyte transcription factor
+DC	pDC	Siglech	positive	skull_immune_dotplot	high	pDC marker
+DC	pDC	Ctsl	positive	skull_immune_dotplot	medium	pDC marker in skull_immune
+DC	pDC	Bst2	positive	Charles_current	high	pDC marker
+DC	cDC1	Ifi205	positive	skull_immune_dotplot	medium	cDC1 marker in skull_immune
+DC	cDC1	Clec9a	positive	skull_immune_dotplot	high	cDC1 marker
+DC	cDC1	Id2	positive	skull_immune_dotplot	medium	cDC1-associated transcription factor
+DC	cDC1	Xcr1	positive	skull_immune_dotplot	high	cDC1 marker
+DC	cDC1	Cadm1	positive	skull_immune_dotplot	medium	cDC1 marker
+DC	cDC2	Tmem176b	positive	skull_immune_dotplot	medium	cDC2 marker; also stromal in skull_immune
+DC	cDC2	Cd209a	positive	skull_immune_dotplot	high	cDC2 marker
+DC	cDC2	Ifitm3	positive	skull_immune_dotplot	medium	cDC2/interferon-associated
+DC	cDC2	Ciita	positive	skull_immune_dotplot	high	Antigen-presentation cDC2 marker
+DC	cDC2	Sirpa	positive	skull_immune_dotplot	high	cDC2 marker
+B_cell	B_cell_broad	Cd79a	positive	Charles_current	high	BCR component
+B_cell	B_cell_broad	Cd79b	positive	Charles_current	high	BCR component
+B_cell	B_cell_broad	Ms4a1	positive	Charles_current	high	CD20
+B_cell	B_cell_broad	Ebf1	positive	Charles_current	high	B-lineage transcription factor
+B_cell	B_cell_broad	Pax5	positive	Charles_current	high	B-lineage transcription factor
+B_cell	B_cell_broad	Ighm	positive	Charles_current	high	Naive/immature B-cell immunoglobulin
+B_cell	Pro_B_cell	Vpreb1	positive	skull_immune_dotplot	high	Pro-B marker
+B_cell	Pro_B_cell	Vpreb3	positive	skull_immune_dotplot	high	Pro-B marker
+B_cell	Pre_B_cell	Bcl7a	positive	skull_immune_dotplot	medium	Pre-B marker in skull_immune
+B_cell	Pre_B_cell	Dnajc7	positive	skull_immune_dotplot	low	Pre-B marker in skull_immune
+B_cell	Immature_B_cell	Iglc1	positive	skull_immune_dotplot	medium	Immature/plasma B marker; interpret with plasma markers
+B_cell	Immature_B_cell	Ms4a1	positive	skull_immune_dotplot	medium	Immature/mature B marker
+B_cell	Mature_B_cell	H2-Aa	positive	skull_immune_dotplot	medium	Mature B antigen presentation
+B_cell	Mature_B_cell	H2-Eb1	positive	skull_immune_dotplot	medium	Mature B antigen presentation
+Plasma_cell	Plasma_cell	Jchain	positive	Charles_current	high	Plasma cell/immunoglobulin secretion
+Plasma_cell	Plasma_cell	Xbp1	positive	Charles_current	high	Plasma-cell unfolded protein response
+Plasma_cell	Plasma_cell	Mzb1	positive	Charles_current	high	Plasma cell marker
+Plasma_cell	Plasma_cell	Igkc	positive	Charles_current	high	Immunoglobulin kappa constant
+Plasma_cell	Plasma_cell	Txndc5	positive	skull_immune_dotplot	high	Plasma-cell secretory program; top DE in Charles r1.0 cluster 22
+T_cell	T_cell_broad	Cd3d	positive	Charles_current	high	TCR complex
+T_cell	T_cell_broad	Cd3e	positive	Charles_current	high	TCR complex
+T_cell	T_cell_broad	Cd3g	positive	Charles_current	high	TCR complex
+T_cell	T_cell_broad	Trac	positive	Charles_current	high	TCR alpha constant
+T_cell	T_cell_broad	Lck	positive	Charles_current	medium	T-cell signaling
+T_cell	T_cell_broad	Skap1	positive	Charles_current	medium	T-cell signaling; top DE in Charles r1.0 cluster 18
+T_cell	Cd8_T_cell	Cd8a	positive	skull_immune_dotplot	high	CD8 T marker
+T_cell	Cd8_T_cell	Cd8b1	positive	skull_immune_dotplot	high	CD8 T marker
+T_cell	Cd4_T_cell	Cd4	positive	skull_immune_dotplot	high	CD4 T marker
+T_cell	gdT_cell	S100a4	positive	skull_immune_dotplot	medium	gdT marker in skull_immune
+T_cell	gdT_cell	Maf	positive	skull_immune_dotplot	medium	gdT marker in skull_immune
+NK_cell	NK_cell	Nkg7	positive	Charles_current	high	NK/cytotoxic marker
+NK_cell	NK_cell	Klrb1c	positive	Charles_current	high	NK1.1 in mouse
+NK_cell	NK_cell	Gzma	positive	Charles_current	high	Cytotoxic granule marker
+NK_cell	NK_cell	Prf1	positive	Charles_current	high	Cytotoxic marker
+NK_cell	NK_cell	Ccl5	positive	skull_immune_dotplot	medium	NK marker in skull_immune
+NK_T_cell	NK_T_cell	Il2rb	positive	skull_immune_dotplot	medium	NK-T marker in skull_immune
+NK_T_cell	NK_T_cell	Gimap4	positive	skull_immune_dotplot	medium	NK-T marker in skull_immune
+basophil	Basophil_broad	Alox15	positive	skull_immune_dotplot	high	Basophil marker
+basophil	Basophil_broad	Ms4a2	positive	skull_immune_dotplot	high	Fc receptor beta; basophil/mast marker
+basophil	Basophil_broad	Cyp11a1	positive	skull_immune_dotplot	medium	Basophil marker in skull_immune
+basophil	Basophil_broad	Gata2	positive	skull_immune_dotplot	medium	Basophil/progenitor-associated
+basophil	Basophil_broad	Mcpt8	positive	Charles_current	high	Basophil marker
+basophil	Basophil_progenitor	Prss34	positive	skull_immune_dotplot	high	Basophil progenitor marker
+basophil	Basophil_progenitor	H2afz	positive	skull_immune_dotplot	medium	Progenitor/cycling-associated
+erythroid	Erythroid_broad	Hba-a1	positive	skull_immune_dotplot	high	Hemoglobin alpha
+erythroid	Erythroid_broad	Hbb-bs	positive	skull_immune_dotplot	high	Hemoglobin beta
+erythroid	Erythroid_progenitor	Cpox	positive	skull_immune_dotplot	high	Erythroid progenitor marker
+erythroid	Erythroid_progenitor	Hmbs	positive	skull_immune_dotplot	high	Erythroid progenitor marker
+erythroid	Erythroid_progenitor	Slc4a1	positive	skull_immune_dotplot	medium	Erythroid maturation marker
+erythroid	Erythroid_cell	Hmbs	positive	skull_immune_dotplot	medium	Erythroid cell marker
+erythroid	Erythroid_cell	Dennd4a	positive	skull_immune_dotplot	medium	Erythroid cell marker in skull_immune
+erythroid	Erythroblast	Prdx2	positive	skull_immune_dotplot	high	Erythroblast marker
+erythroid	Erythroblast	Car2	positive	skull_immune_dotplot	high	Erythroblast/erythroid maturation marker
+erythroid	MEP_Erythroid	Gata1	positive	Charles_current	high	Erythroid/MEP transcription factor
+erythroid	MEP_Erythroid	Klf1	positive	Charles_current	high	Erythroid transcription factor
+erythroid	MEP_Erythroid	Gypa	positive	Charles_current	high	Erythroid marker
+megakaryocyte	Megakaryocyte	Pf4	positive	Charles_current	high	Platelet factor 4
+megakaryocyte	Megakaryocyte	Itga2b	positive	Charles_current	high	CD41
+megakaryocyte	Megakaryocyte	Vwf	positive	Charles_current	medium	Megakaryocyte/endothelial-associated
+megakaryocyte	Megakaryocyte	Ppbp	positive	Charles_current	medium	Megakaryocyte/platelet-associated
+megakaryocyte	Megakaryocyte	Gng11	positive	skull_immune_dotplot	medium	Megakaryocyte marker in skull_immune
+megakaryocyte	Megakaryocyte	Alox12	positive	skull_immune_dotplot	medium	Megakaryocyte marker in skull_immune
+macrophage	Macrophage_broad	C1qb	positive	skull_immune_dotplot	high	Macrophage marker
+macrophage	Macrophage_broad	Apoe	positive	skull_immune_dotplot	high	Macrophage marker
+macrophage	Macrophage_broad	Trem2	positive	skull_immune_dotplot	high	Macrophage marker
+macrophage	Macrophage_broad	C1qa	positive	skull_immune_dotplot	high	Macrophage marker
+macrophage	Perivascular_macrophage	Ccl8	positive	skull_immune_dotplot	medium	Perivascular macrophage marker
+macrophage	Perivascular_macrophage	Cd163	positive	skull_immune_dotplot	high	Perivascular macrophage marker
+macrophage	Perivascular_macrophage	C1qc	positive	skull_immune_dotplot	medium	Perivascular macrophage marker
+macrophage	Monocyte_derived_macrophage	S100a6	positive	skull_immune_dotplot	medium	Monocyte-derived macrophage marker
+macrophage	Monocyte_derived_macrophage	Ms4a6d	positive	skull_immune_dotplot	medium	Monocyte-derived macrophage marker
+macrophage	Monocyte_derived_macrophage	Mafb	positive	skull_immune_dotplot	high	Macrophage transcription factor
+structural	Fibroblast	Cxcl12	positive	skull_immune_dotplot	high	Stromal/fibroblast marker; possible contaminant/carryover
+structural	Fibroblast	Bgn	positive	skull_immune_dotplot	medium	Fibroblast marker
+structural	Fibroblast	Gpx3	positive	skull_immune_dotplot	medium	Fibroblast marker
+structural	Dural_fibroblast	Mgp	positive	skull_immune_dotplot	medium	Dural fibroblast marker
+structural	Dural_fibroblast	Col1a1	positive	skull_immune_dotplot	high	Fibroblast/collagen marker
+structural	Endothelial_cell	Pecam1	positive	skull_immune_dotplot	high	Endothelial marker
+structural	Endothelial_cell	Cldn5	positive	skull_immune_dotplot	high	Endothelial marker
+structural	Endothelial_cell	Egfl7	positive	skull_immune_dotplot	medium	Endothelial marker
+structural	Endothelial_cell	Ptprb	positive	skull_immune_dotplot	medium	Endothelial marker
+QC	Cycling	Mki67	positive	Charles_current	high	QC/state flag, not final cell type by itself
+QC	Cycling	Top2a	positive	Charles_current	high	QC/state flag, not final cell type by itself
+QC	Cycling	Pcna	positive	Charles_current	medium	QC/state flag
+QC	Cycling	Birc5	positive	Charles_current	medium	QC/state flag
+QC	Stress_Response	Fos	positive	Charles_current	medium	QC/state flag
+QC	Stress_Response	Jun	positive	Charles_current	medium	QC/state flag
+QC	Stress_Response	Dusp1	positive	Charles_current	medium	QC/state flag
+QC	Stress_Response	Hspa1a	positive	Charles_current	medium	QC/state flag
+QC	Stress_Response	Hspa1b	positive	Charles_current	medium	QC/state flag
+QC	Low_Quality_Ambient	Malat1	positive	Charles_current	medium	QC/ambient flag, not final cell type
+QC	Low_Quality_Ambient	mt-Co1	positive	Charles_current	medium	Mitochondrial/QC flag
+QC	Low_Quality_Ambient	mt-Co2	positive	Charles_current	medium	Mitochondrial/QC flag
+QC	Low_Quality_Ambient	mt-Cytb	positive	Charles_current	medium	Mitochondrial/QC flag
