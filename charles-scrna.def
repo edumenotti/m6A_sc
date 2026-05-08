@@ -32,7 +32,7 @@ From: ubuntu:22.04
 
     # Smoke-test: Python and R must be importable
     /project/.pixi/envs/default/bin/python -c "import scanpy; print('scanpy', scanpy.__version__)"
-    /project/.pixi/envs/default/bin/Rscript -e "cat('R OK\n')"
+    /project/.pixi/envs/default/bin/Rscript -e "library(Seurat); cat('R + Seurat OK\n')"
 
 %environment
     export PIXI_HOME=/opt/pixi
