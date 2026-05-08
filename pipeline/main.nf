@@ -27,6 +27,10 @@ include { ANNOTATE_HSPC }  from './modules/annotate_hspc'
 include { ANNOTATE_MATURE } from './modules/annotate_mature'
 include { RECONCILE_ANNOTATIONS } from './modules/reconcile_annotations'
 include { MARKERS }   from './modules/markers'
+include { MANUAL_MARKER_REVIEW }    from './modules/manual_marker_review'
+include { APPLY_MANUAL_ANNOTATION } from './modules/apply_manual_annotation'
+include { SUBSET_RECLUSTER }        from './modules/subset_recluster'
+include { FINAL_FIGURES }           from './modules/final_figures'
 include { PROGENITOR_RECLUSTER }       from './modules/progenitor_recluster'
 include { APPLY_PROGENITOR_ANNOTATION } from './modules/apply_progenitor_annotation'
 
@@ -44,6 +48,21 @@ workflow {
     ANNOTATE_MATURE(CLUSTER.out.h5ad, mature_ref_ch)
     RECONCILE_ANNOTATIONS(ANNOTATE_HSPC.out.h5ad, ANNOTATE_MATURE.out.h5ad)
     MARKERS(RECONCILE_ANNOTATIONS.out.h5ad)
+
+    /*
+     * Post-reconciliation annotation sub-workflow (scripts 09–12):
+     *   MANUAL_MARKER_REVIEW  — produces diagnostics for human review
+     *   [HUMAN: fill pipeline/config/manual_annotation_level1_map_leiden_r2.0.tsv]
+     *   APPLY_MANUAL_ANNOTATION — applies filled map; map is committed so this always runs
+     *   SUBSET_RECLUSTER      — B cell / erythroid level2 sub-clustering
+     *   FINAL_FIGURES         — curated summary figures for the annotated dataset
+     */
+    annotation_map_ch = Channel.fromPath(params.manual_annotation_map, checkIfExists: true)
+
+    MANUAL_MARKER_REVIEW(RECONCILE_ANNOTATIONS.out.h5ad)
+    APPLY_MANUAL_ANNOTATION(RECONCILE_ANNOTATIONS.out.h5ad, annotation_map_ch)
+    SUBSET_RECLUSTER(APPLY_MANUAL_ANNOTATION.out.h5ad)
+    FINAL_FIGURES(SUBSET_RECLUSTER.out.h5ad)
 
     if (params.run_progenitor_recluster) {
         prog_in_ch = Channel.fromPath(params.progenitor_input_h5ad, checkIfExists: true)
