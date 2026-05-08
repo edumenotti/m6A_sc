@@ -20,10 +20,6 @@ import scanpy as sc
 
 sc.settings.verbosity = 1
 
-B_CLUSTER = "15"
-ERY_CLUSTER = "13"
-CLUSTER_KEY = "leiden_r1.0"
-
 PRO_PRE_B    = ["Vpreb1", "Vpreb3", "Ebf1", "Dntt", "Bach2"]
 MATURE_B     = ["H2-Aa", "H2-Eb1", "H2-Ab1", "Bank1", "Ms4a1", "Cd74"]
 MEP_ERY      = ["Gata1", "Klf1", "Itga2b", "Gata2", "Hba-a1"]
@@ -60,7 +56,9 @@ def recluster(adata_sub: sc.AnnData, res: float = 0.5,
 def make_calls(adata_sub: sc.AnnData, pos_genes: list[str], neg_genes: list[str],
                pos_label: str, neg_label: str) -> dict[str, str]:
     calls: dict[str, str] = {}
-    for c in sorted(adata_sub.obs["leiden_subset"].unique(), key=int):
+    def _sort_key(x: str) -> tuple[int, str]:
+        return (0, str(x).zfill(6)) if str(x).isdigit() else (1, str(x))
+    for c in sorted(adata_sub.obs["leiden_subset"].unique(), key=_sort_key):
         sub = adata_sub[adata_sub.obs["leiden_subset"] == c]
         pos = mean_expr(sub, pos_genes)
         neg = mean_expr(sub, neg_genes)
@@ -81,11 +79,11 @@ def plot_subset(adata_sub: sc.AnnData, cols: list[str], out: Path, prefix: str) 
         plt.close()
 
 
-def process_compartment(adata: sc.AnnData, cluster_id: str,
+def process_compartment(adata: sc.AnnData, cluster_id: str, cluster_key: str,
                         pos_genes: list[str], neg_genes: list[str],
                         pos_label: str, neg_label: str, broad_label: str,
                         plot_genes: list[str], prefix: str, out: Path) -> pd.Series:
-    mask = adata.obs[CLUSTER_KEY].astype(str) == cluster_id
+    mask = adata.obs[cluster_key].astype(str) == cluster_id
     adata_sub = adata[mask].copy()
     print(f"  {prefix} subset: {adata_sub.n_obs} cells")
 
@@ -128,7 +126,7 @@ def main(args: argparse.Namespace) -> None:
     print(f"Loaded {adata.n_obs} cells")
 
     b_updates = process_compartment(
-        adata, B_CLUSTER,
+        adata, args.b_cluster, args.cluster_key,
         pos_genes=PRO_PRE_B, neg_genes=MATURE_B,
         pos_label="Pro_Pre_B", neg_label="Mature_B", broad_label="B_cell_broad",
         plot_genes=["Vpreb3", "H2-Aa"],
@@ -136,7 +134,7 @@ def main(args: argparse.Namespace) -> None:
     )
 
     ery_updates = process_compartment(
-        adata, ERY_CLUSTER,
+        adata, args.ery_cluster, args.cluster_key,
         pos_genes=MEP_ERY, neg_genes=ERYTHROBLAST,
         pos_label="MEP_Erythroid", neg_label="Erythroblast", broad_label="Erythroid_broad",
         plot_genes=["Gata1", "Car2"],
@@ -163,4 +161,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", default="results/11_annotation_r1.0/adata_manual_level1.h5ad")
     parser.add_argument("--out",   default="results/12_subset_recluster")
+    parser.add_argument("--cluster-key", dest="cluster_key", default="leiden_r1.0")
+    parser.add_argument("--b-cluster",   dest="b_cluster",   default="15",
+                        help="Cluster id (in --cluster-key) for the B cell compartment to recluster")
+    parser.add_argument("--ery-cluster", dest="ery_cluster", default="13",
+                        help="Cluster id (in --cluster-key) for the erythroid compartment to recluster")
     main(parser.parse_args())
