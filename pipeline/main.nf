@@ -1,4 +1,15 @@
 /*
+ * Usage:
+ *   Local (pixi installed):  nextflow run main.nf -profile local  -params-file params.yaml
+ *   Yale HPC (Apptainer):    nextflow run main.nf -profile apptainer,slurm -params-file params.yaml
+ *
+ * Build container (once, from project root):
+ *   sudo apptainer build charles-scrna.sif charles-scrna.def        # local with sudo
+ *   apptainer build --fakeroot charles-scrna.sif charles-scrna.def  # HPC (no sudo needed)
+ *   scp charles-scrna.sif <netid>@grace.hpc.yale.edu:<project-dir>/
+ */
+
+/*
  * Charles scRNA-seq pipeline — main workflow.
  *
  * Linear pipeline (always runs):
