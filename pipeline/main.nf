@@ -1,3 +1,21 @@
+/*
+ * Charles scRNA-seq pipeline — main workflow.
+ *
+ * Linear pipeline (always runs):
+ *   QC → DOUBLETS → NORMALIZE → INTEGRATE → CLUSTER →
+ *   ANNOTATE_HSPC + ANNOTATE_MATURE → RECONCILE_ANNOTATIONS → MARKERS
+ *
+ * Optional progenitor sub-workflow (when run_progenitor_recluster=true):
+ *   PROGENITOR_RECLUSTER  — diagnostic only; produces annotation_template.tsv
+ *   [HUMAN REVIEW]        — fill pipeline/config/progenitor_annotation_map.tsv
+ *                           with chosen_resolution comment + level1/level2 labels
+ *   APPLY_PROGENITOR_ANNOTATION — runs only if the filled map exists
+ *
+ * On the first invocation the annotation map will be missing and APPLY is
+ * skipped with a log message. After human review, re-run the pipeline and
+ * APPLY will execute, producing adata_progenitor_annotated.h5ad.
+ */
+
 nextflow.enable.dsl = 2
 
 include { QC }        from './modules/qc'
