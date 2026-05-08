@@ -1,0 +1,44 @@
+Bootstrap: docker
+From: ubuntu:22.04
+
+%labels
+    Maintainer Eduardo Menotti
+    Project charles-scrna
+    Description scRNA-seq pipeline environment (pixi-locked)
+
+%files
+    pixi.toml /project/pixi.toml
+    pixi.lock /project/pixi.lock
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update && apt-get install -y \
+        curl \
+        ca-certificates \
+        build-essential \
+        libssl-dev \
+        libffi-dev \
+        git \
+        && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+    # Install pixi to /opt/pixi
+    export PIXI_HOME=/opt/pixi
+    curl -fsSL https://pixi.sh/install.sh | bash
+    export PATH="/opt/pixi/bin:$PATH"
+
+    # Install the locked environment into the container
+    # This reads pixi.lock exactly — no solver, no drift
+    pixi install --locked --manifest-path /project/pixi.toml
+
+    # Smoke-test: Python and R must be importable
+    /project/.pixi/envs/default/bin/python -c "import scanpy; print('scanpy', scanpy.__version__)"
+    /project/.pixi/envs/default/bin/Rscript -e "cat('R OK\n')"
+
+%environment
+    export PIXI_HOME=/opt/pixi
+    export PATH="/opt/pixi/bin:/project/.pixi/envs/default/bin:$PATH"
+    export PIXI_PROJECT_DIR=/project
+    export R_LIBS_USER=/project/.pixi/envs/default/lib/R/library
+
+%runscript
+    exec "$@"
