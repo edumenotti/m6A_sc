@@ -76,13 +76,12 @@ workflow {
     FINAL_FIGURES(SUBSET_RECLUSTER.out.h5ad)
 
     if (params.run_progenitor_recluster) {
-        prog_in_ch = Channel.fromPath(params.progenitor_input_h5ad, checkIfExists: true)
-        PROGENITOR_RECLUSTER(prog_in_ch)
+        PROGENITOR_RECLUSTER(SUBSET_RECLUSTER.out.h5ad)
 
         map_file = file(params.progenitor_annotation_map)
         if (map_file.exists()) {
             APPLY_PROGENITOR_ANNOTATION(
-                prog_in_ch,
+                SUBSET_RECLUSTER.out.h5ad,
                 PROGENITOR_RECLUSTER.out.assignments,
                 Channel.fromPath(params.progenitor_annotation_map, checkIfExists: true)
             )
