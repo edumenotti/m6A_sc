@@ -16,7 +16,7 @@ process PROGENITOR_RECLUSTER {
 
     script:
     """
-    pixi run -m ${projectDir}/../pixi.toml python ${projectDir}/scripts/13_progenitor_recluster.py \\
+    pixi run -m ${params.pixi_manifest} python ${projectDir}/scripts/13_progenitor_recluster.py \\
         --input ${h5ad} \\
         --out .
     """

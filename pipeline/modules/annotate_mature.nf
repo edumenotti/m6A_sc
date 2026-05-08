@@ -17,7 +17,7 @@ process ANNOTATE_MATURE {
 
     script:
     """
-    pixi run -m ${projectDir}/../pixi.toml -e popv python ${projectDir}/scripts/06_annotate.py \
+    pixi run -m ${params.pixi_manifest} -e popv python ${projectDir}/scripts/06_annotate.py \
         --input ${h5ad} \
         --ref ${ref_h5ad} \
         --out . \

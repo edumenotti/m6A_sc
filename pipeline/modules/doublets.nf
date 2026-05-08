@@ -16,7 +16,7 @@ process DOUBLETS {
     def installFlag = params.doubletfinder_install_missing ? "--install-missing" : ""
     def autoPkFlag = params.doubletfinder_auto_pk ? "--auto-pk" : ""
     """
-    pixi run -m ${projectDir}/../pixi.toml python ${projectDir}/scripts/02_doublets.py \
+    pixi run -m ${params.pixi_manifest} python ${projectDir}/scripts/02_doublets.py \
         --input ${h5ad} \
         --out . \
         --expected-rate ${params.expected_doublet_rate} \

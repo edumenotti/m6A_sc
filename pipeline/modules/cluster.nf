@@ -13,7 +13,7 @@ process CLUSTER {
 
     script:
     """
-    pixi run -m ${projectDir}/../pixi.toml python ${projectDir}/scripts/05_cluster.py \
+    pixi run -m ${params.pixi_manifest} python ${projectDir}/scripts/05_cluster.py \
         --input ${h5ad} \
         --out . \
         --resolution ${params.leiden_resolution}

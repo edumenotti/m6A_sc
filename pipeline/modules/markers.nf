@@ -13,7 +13,7 @@ process MARKERS {
 
     script:
     """
-    pixi run -m ${projectDir}/../pixi.toml python ${projectDir}/scripts/07_markers.py \
+    pixi run -m ${params.pixi_manifest} python ${projectDir}/scripts/07_markers.py \
         --input ${h5ad} \
         --out . \
         --cluster_key leiden_r${params.leiden_resolution} \

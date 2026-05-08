@@ -16,7 +16,7 @@ process APPLY_PROGENITOR_ANNOTATION {
 
     script:
     """
-    pixi run -m ${projectDir}/../pixi.toml python ${projectDir}/scripts/14_apply_progenitor_annotation.py \\
+    pixi run -m ${params.pixi_manifest} python ${projectDir}/scripts/14_apply_progenitor_annotation.py \\
         --input ${h5ad} \\
         --assignments ${assignments} \\
         --map ${map_tsv} \\

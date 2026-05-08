@@ -14,7 +14,7 @@ process MANUAL_MARKER_REVIEW {
 
     script:
     """
-    pixi run -m ${projectDir}/../pixi.toml python ${projectDir}/scripts/09_manual_marker_review.py \
+    pixi run -m ${params.pixi_manifest} python ${projectDir}/scripts/09_manual_marker_review.py \
         --input ${h5ad} \
         --out . \
         --marker-db ${projectDir}/config/manual_annotation_markers_skull_immune.tsv \

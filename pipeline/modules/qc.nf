@@ -14,7 +14,7 @@ process QC {
 
     script:
     """
-    pixi run -m ${projectDir}/../pixi.toml python ${projectDir}/scripts/01_qc.py \
+    pixi run -m ${params.pixi_manifest} python ${projectDir}/scripts/01_qc.py \
         --h5 ${h5_file} \
         --out . \
         --mito_nmads ${params.mito_nmads} \

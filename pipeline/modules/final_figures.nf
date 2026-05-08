@@ -14,7 +14,7 @@ process FINAL_FIGURES {
 
     script:
     """
-    pixi run -m ${projectDir}/../pixi.toml python ${projectDir}/scripts/11_final_figures.py \
+    pixi run -m ${params.pixi_manifest} python ${projectDir}/scripts/11_final_figures.py \
         --input ${h5ad} \
         --out .
     """

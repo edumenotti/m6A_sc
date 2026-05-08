@@ -16,7 +16,7 @@ process RECONCILE_ANNOTATIONS {
 
     script:
     """
-    pixi run -m ${projectDir}/../pixi.toml python ${projectDir}/scripts/08_reconcile_annotations.py \
+    pixi run -m ${params.pixi_manifest} python ${projectDir}/scripts/08_reconcile_annotations.py \
         --hspc ${hspc_h5ad} \
         --mature ${mature_h5ad} \
         --out . \
