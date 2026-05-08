@@ -295,21 +295,21 @@ def main(args: argparse.Namespace) -> None:
         key = f"leiden_sub_r{res}"
         save_umap(adata_prog, key, out, f"r{res}")
 
-    # QC overlays on re-embedded UMAP
-    for col in ["pct_counts_mt", "n_genes_by_counts", "n_counts"]:
-        if col in adata_prog.obs.columns:
-            save_umap(adata_prog, col, out, "qc")
-    for col in ["score_Stress_IEG", "score_Cycling"]:
-        if col in adata_prog.obs.columns:
-            save_umap(adata_prog, col, out, "state")
+    # QC overlays on re-embedded UMAP — exploratory during QC review; not needed in final output.
+    # for col in ["pct_counts_mt", "n_genes_by_counts", "n_counts"]:
+    #     if col in adata_prog.obs.columns:
+    #         save_umap(adata_prog, col, out, "qc")
+    # for col in ["score_Stress_IEG", "score_Cycling"]:
+    #     if col in adata_prog.obs.columns:
+    #         save_umap(adata_prog, col, out, "state")
 
-    # Lineage marker UMAPs
-    for lineage, genes in PROGENITOR_MARKERS.items():
-        score_col = f"score_{lineage}"
-        if score_col in adata_prog.obs.columns:
-            save_umap(adata_prog, score_col, out, f"score_{lineage}")
-        for g in present(adata_prog, genes[:2]):
-            save_umap(adata_prog, g, out, f"gene_{lineage}")
+    # Lineage marker UMAPs — exploratory; dozens of files per run. Dotplots cover the same info.
+    # for lineage, genes in PROGENITOR_MARKERS.items():
+    #     score_col = f"score_{lineage}"
+    #     if score_col in adata_prog.obs.columns:
+    #         save_umap(adata_prog, score_col, out, f"score_{lineage}")
+    #     for g in present(adata_prog, genes[:2]):
+    #         save_umap(adata_prog, g, out, f"gene_{lineage}")
 
     # ── 7. DE analysis + marker hit tables ───────────────────────────────────
     print("\nRunning DE analysis at each resolution...")
