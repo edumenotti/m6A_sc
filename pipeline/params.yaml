@@ -29,4 +29,4 @@ progenitor_annotation_map: "config/progenitor_annotation_map.tsv"
 run_progenitor_recluster: true
 leiden_resolution_manual: 2.0
 annotation_version: "manual_level1_r2.0_2026-05-05"
-manual_annotation_map: "pipeline/config/manual_annotation_level1_map_leiden_r2.0.tsv"
+manual_annotation_map: "config/manual_annotation_level1_map_leiden_r2.0.tsv"
