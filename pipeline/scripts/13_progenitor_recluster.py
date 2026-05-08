@@ -100,9 +100,8 @@ def clean_and_reembed(
     sc.pp.highly_variable_genes(adata_clean_var, n_top_genes=n_hvg, subset=False)
     hvg_names = adata_clean_var.var_names[adata_clean_var.var["highly_variable"]].tolist()
     # embed using those HVGs on the full adata (so X_pca stored in adata_sub)
-    adata_sub.var["hvg_clean"] = adata_sub.var_names.isin(hvg_names)
-    sc.pp.pca(adata_sub, n_comps=n_pcs, use_highly_variable=False,
-              mask_var="hvg_clean")
+    adata_sub.var["highly_variable"] = adata_sub.var_names.isin(hvg_names)
+    sc.pp.pca(adata_sub, n_comps=n_pcs, use_highly_variable=True)
     sc.pp.neighbors(adata_sub, n_neighbors=n_neighbors, n_pcs=n_pcs)
     sc.tl.umap(adata_sub)
     return adata_sub
