@@ -6,7 +6,7 @@
 
 **Architecture:** Six sequential Python scripts (one per analysis stage) are orchestrated by a Nextflow DSL2 pipeline. Each script reads a `.h5ad` from the previous step and writes the next. The pipeline can run locally (pixi env) or on a SLURM cluster (Yale HPC/Grace).
 
-**Tech Stack:** Python 3.14 · scanpy 1.12 · scvi-tools 1.4 · scArches · popV · CellTypist · Nextflow DSL2 · pixi (existing env at ~/Yale)
+**Tech Stack:** Python 3.11 · scanpy · scvi-tools/scANVI · scArches-style query mapping · popV · Nextflow DSL2 · pixi
 
 ---
 
@@ -31,16 +31,15 @@ If using the **Meta-Analytic Mouse Bone Marrow Atlas** (Gillis lab, CSHL; 300,00
 popV runs 8 annotation algorithms in parallel (KNN, scVI, SVM, logistic regression, etc.) and takes a consensus vote weighted by Cell Ontology hierarchy. It provides uncertainty scores per cell. This is the most robust approach and handles cases where your query cells don't match any reference cell type (they get flagged as uncertain). **We will use popV as the primary annotator.**
 
 **Option D — CellTypist:**
-CellTypist has limited mouse models. The `Immune_All_Low.pkl` model is human-trained but the tool provides a human→mouse gene conversion. It will be used as an **independent validation**, not primary annotation.
+CellTypist is disabled for this dataset. The human `Immune_All_Low.pkl` model matched only 7 query genes in the local test, so its labels are not reliable here.
 
 **Recommended strategy (this plan):**
 1. **popV** with Nestorowa 2016 reference → primary labels + uncertainty scores
-2. **scArches + KNN** in scVI latent space → secondary reference mapping
-3. **CellTypist** `Immune_All_Low.pkl` with `over_clustering=True` → cross-species validation
-4. **Manual marker dotplot** → ground truth validation
+2. **scANVI/scArches-style reference mapping** → secondary label transfer
+3. **Manual marker dotplot and marker-score consistency tables** → ground truth validation
 
-### Doublet Detection: Scrublet
-Scrublet generates synthetic doublets and computes a doublet score per cell. SOLO (deep learning doublet detector in scvi-tools) is slightly more accurate but Scrublet is faster and sufficient. Run **per-sample** (per barcode suffix) to avoid inter-sample confounding.
+### Doublet Detection: DoubletFinder via Python-driven R bridge
+Use **DoubletFinder** for doublet detection because this project should match the Seurat/R ecosystem used in the original processing logic. The pipeline entry point remains Python (`pipeline/scripts/02_doublets.py`) so the Nextflow workflow stays Python-oriented, but the script exports each sample's sparse raw counts to temporary Matrix Market files and calls `Rscript` to run Seurat + DoubletFinder. This avoids brittle in-memory AnnData→Seurat conversion while still satisfying the requirement to run the R package from a Python-controlled stage. Run **per-sample** (`sample_id`) to avoid synthetic cross-sample doublets that cannot exist biologically.
 
 ### Ambient RNA: Skipped (data limitation)
 CellBender requires the **raw (unfiltered)** feature-barcode matrix to model ambient RNA. This dataset only provides the `filtered_feature_bc_matrix.h5`. SoupX can work with the filtered matrix but requires the cluster topology — it would be circular to run QC before clustering. **Decision: skip ambient RNA correction.** Note this in Methods.
@@ -77,8 +76,10 @@ Charles/
 ├── data/
 │   └── count/filtered_feature_bc_matrix.h5  (existing)
 ├── results/
+│   ├── 00_qc_scan/
 │   ├── 01_qc/
 │   ├── 02_doublets/
+│   ├── 03_hvg_scan/
 │   ├── 03_normalize/
 │   ├── 04_integrate/
 │   ├── 05_cluster/
@@ -87,6 +88,41 @@ Charles/
 └── docs/
     └── superpowers/plans/  (this file)
 ```
+
+---
+
+## Task 0: QC Parameter Scan (`scripts/00_qc_parameter_scan.py`)
+
+**Files:**
+- Create: `pipeline/scripts/00_qc_parameter_scan.py`
+- Writes: `results/00_qc_scan/`
+
+### What this script does
+- Loads the raw aggregated H5 and annotates all cells by sample.
+- Computes `% mitochondrial`, `% ribosomal` (`Rpl*`, `Rps*`), and `% hemoglobin` (`Hba*`, `Hbb*`) metrics.
+- Produces per-sample QC summaries and plots.
+- Scans combinations of `count_nmads`, `mito_nmads`, optional absolute mitochondrial caps, and optional ribosomal caps.
+- Writes `qc_filter_parameter_scan.csv` so the filtering choice can be justified before integration.
+
+- [x] **Step 0.1: Run QC scan**
+
+```bash
+cd /home/edu-pc/Yale/Charles
+pixi run python pipeline/scripts/00_qc_parameter_scan.py \
+  --h5 data/count/filtered_feature_bc_matrix.h5 \
+  --out results/00_qc_scan/
+```
+
+Observed in the first run:
+- 13 mitochondrial genes
+- 101 ribosomal genes
+- 8 hemoglobin genes
+
+### Final QC decision
+- Ambient RNA correction: skipped because only filtered CellRanger matrices are available locally.
+- Cell filtering: `count_nmads=6`, `mito_nmads=4`, no absolute ribosomal cutoff.
+- Rationale: compared with the stricter `count_nmads=5`, `mito_nmads=3` setting, 6/4 retains more cells while keeping post-filter mitochondrial burden nearly unchanged.
+- Final rerun output: 53,494 cells before QC, 8,239 removed, 45,255 retained.
 
 ---
 
@@ -101,12 +137,13 @@ Charles/
 - Separates GEX from HTO layers
 - Annotates cells with sample metadata
 - Computes QC metrics (n_genes, n_counts, pct_mito)
+- Computes ribosomal and hemoglobin QC metrics for reporting
 - Generates QC violin/scatter plots
 - Filters cells using MAD-based thresholds (not fixed cutoffs)
 - Saves filtered AnnData
 
 ### Why MAD-based thresholds?
-Fixed thresholds (e.g., "remove cells with < 200 genes") are arbitrary and dataset-dependent. MAD (median absolute deviation) thresholds adapt to each sample's distribution. Standard practice: flag cells that are >5 MADs below the median for n_genes or n_counts, or >3 MADs above median for pct_mito.
+Fixed thresholds (e.g., "remove cells with < 200 genes") are arbitrary and dataset-dependent. MAD (median absolute deviation) thresholds adapt to each sample's distribution. After scanning candidate settings, use a moderately permissive final setting: flag cells that are >6 MADs below the median for n_genes or n_counts, or >4 MADs above the median for pct_mito. This retained substantially more cells than 5/3 while keeping the post-filter mitochondrial burden nearly unchanged.
 
 - [ ] **Step 1.1: Create the QC script**
 
@@ -237,8 +274,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--h5", required=True)
     parser.add_argument("--out", required=True)
-    parser.add_argument("--mito_nmads", type=float, default=3.0)
-    parser.add_argument("--count_nmads", type=float, default=5.0)
+    parser.add_argument("--mito_nmads", type=float, default=4.0)
+    parser.add_argument("--count_nmads", type=float, default=6.0)
     args = parser.parse_args()
     main(args.h5, args.out, args.mito_nmads, args.count_nmads)
 ```
@@ -248,16 +285,18 @@ if __name__ == "__main__":
 ```bash
 cd /home/edu-pc/Yale
 pixi run python pipeline/scripts/01_qc.py \
-  --h5 Charles/data/count/filtered_feature_bc_matrix.h5 \
-  --out Charles/results/01_qc/
+  --h5 data/count/filtered_feature_bc_matrix.h5 \
+  --out results/01_qc/ \
+  --count_nmads 6 \
+  --mito_nmads 4
 ```
 
 Expected output:
 ```
 Cells before QC: 53494
-Cells removed: ~500-2000
-Cells after QC: ~51000-53000
-Saved: Charles/results/01_qc/adata_qc.h5ad
+Cells removed: ~8000
+Cells after QC: ~45000
+Saved: results/01_qc/adata_qc.h5ad
 ```
 
 - [ ] **Step 1.3: Commit**
@@ -269,117 +308,101 @@ git commit -m "feat: QC script with MAD-based per-sample filtering"
 
 ---
 
-## Task 2: Doublet Detection (`scripts/02_doublets.py`)
+## Task 2: Doublet Detection with DoubletFinder (`scripts/02_doublets.py`)
 
 **Files:**
 - Create: `pipeline/scripts/02_doublets.py`
 - Reads: `results/01_qc/adata_qc.h5ad`
 - Writes: `results/02_doublets/adata_no_doublets.h5ad`
 
-### Why per-sample doublet detection?
-Scrublet simulates doublets by combining pairs of cells from the input. If run on the full aggregated matrix, it would simulate cross-sample doublets (which don't exist — each cell has a single barcode suffix). Running per-sample produces realistic synthetic doublets.
+### Why per-sample DoubletFinder?
+DoubletFinder creates artificial doublets inside a Seurat object and scores cells against that synthetic neighborhood. If run on the full aggregated matrix, it can create impossible cross-sample doublets because each cell barcode suffix corresponds to one sample. Running per `sample_id` produces realistic synthetic doublets and keeps the expected doublet rate interpretable.
 
 - [ ] **Step 2.1: Create the doublet script**
 
 ```python
 # pipeline/scripts/02_doublets.py
+"""Run per-sample DoubletFinder from a Python pipeline stage.
+
+Python owns AnnData I/O and writes one sparse Matrix Market count matrix per
+sample. Rscript owns Seurat + DoubletFinder and writes back a CSV with barcode,
+score, class, pK, and expected doublet counts. This keeps the pipeline runnable
+from Python/Nextflow without relying on fragile in-memory rpy2 conversion.
+"""
 import scanpy as sc
 import numpy as np
-import scrublet as scr
+import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import argparse
+import subprocess
+import tempfile
 from pathlib import Path
 
-def run_scrublet(adata_sub: sc.AnnData, expected_doublet_rate: float = 0.06) -> np.ndarray:
-    counts = adata_sub.X
-    if hasattr(counts, "toarray"):
-        counts = counts.toarray()
-    scrub = scr.Scrublet(counts, expected_doublet_rate=expected_doublet_rate)
-    scores, _ = scrub.scrub_doublets(min_counts=2, min_cells=3, n_prin_comps=30, verbose=False)
-    return scores, scrub.threshold_
+# Full implementation writes temporary sparse matrices and invokes:
+# Rscript pipeline/scripts/run_doubletfinder.R --counts ... --genes ... --cells ...
+# The R helper loads Seurat + DoubletFinder, optionally installs DoubletFinder
+# with remotes::install_github("chris-mcginnis-ucsf/DoubletFinder"), runs
+# NormalizeData, FindVariableFeatures, ScaleData, RunPCA, FindNeighbors,
+# FindClusters, modelHomotypic, and doubletFinder/doubletFinder_v3.
 
-def main(in_path: str, out_dir: str, score_threshold: float = None):
+def main(in_path: str, out_dir: str, expected_rate: float = 0.075,
+         rscript: str = "Rscript", install_missing: bool = False):
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     adata = sc.read_h5ad(in_path)
 
-    scores = np.zeros(adata.n_obs)
-    thresholds = {}
-
-    for sid in adata.obs["sample_id"].unique():
-        mask = adata.obs["sample_id"] == sid
-        idx = np.where(mask)[0]
-        sub = adata[mask].copy()
-        s, t = run_scrublet(sub)
-        scores[idx] = s
-        thresholds[sid] = t
-        print(f"  {sid}: {mask.sum()} cells, threshold={t:.3f}, "
-              f"predicted doublets={(s > t).sum()}")
-
-    adata.obs["doublet_score"] = scores
-    adata.obs["predicted_doublet"] = False
-
-    for sid, t in thresholds.items():
-        mask = adata.obs["sample_id"] == sid
-        thr = score_threshold if score_threshold else t
-        adata.obs.loc[mask, "predicted_doublet"] = (
-            adata.obs.loc[mask, "doublet_score"] > thr
-        )
-
-    # Plot score distributions
-    fig, ax = plt.subplots(figsize=(12, 4))
-    for sid in adata.obs["sample_id"].unique():
-        mask = adata.obs["sample_id"] == sid
-        ax.hist(adata.obs.loc[mask, "doublet_score"], bins=50,
-                alpha=0.4, label=sid, density=True)
-    ax.set_xlabel("Doublet score")
-    ax.set_ylabel("Density")
-    ax.legend(fontsize=6, ncol=4)
-    plt.tight_layout()
-    plt.savefig(out / "doublet_scores.png", dpi=150)
-    plt.close()
-
-    n_doublets = adata.obs["predicted_doublet"].sum()
-    print(f"Total doublets removed: {n_doublets} ({n_doublets/adata.n_obs*100:.1f}%)")
-    adata = adata[~adata.obs["predicted_doublet"]].copy()
-    adata.write_h5ad(out / "adata_no_doublets.h5ad")
-    print(f"Saved: {out / 'adata_no_doublets.h5ad'}, {adata.n_obs} cells")
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--input", required=True)
-    parser.add_argument("--out", required=True)
-    parser.add_argument("--score_threshold", type=float, default=None)
-    args = parser.parse_args()
-    main(args.input, args.out, args.score_threshold)
+    # The executable script in the repository contains the full bridge.
+    # It writes `doubletfinder_calls.csv`, `doubletfinder_summary.csv`,
+    # `doublet_scores.png`, and `adata_no_doublets.h5ad`.
+    ...
 ```
 
-- [ ] **Step 2.2: Install scrublet in pixi env**
+- [ ] **Step 2.2: Add R bridge dependencies to pixi**
 
-Add to `pixi.toml` under `[pypi-dependencies]`:
+Add to `pixi.toml` under `[dependencies]`:
 ```toml
-scrublet = ">=0.2.3"
+r-base = ">=4.5,<4.6"
+r-seurat = "*"
+r-seuratobject = "*"
+r-matrix = "*"
+r-remotes = "*"
+rpy2 = "*"
 ```
-Then run: `cd /home/edu-pc/Yale && pixi install`
 
-- [ ] **Step 2.3: Run**
+Then run: `cd /home/edu-pc/Yale/Charles && pixi install`
+
+- [ ] **Step 2.3: Install DoubletFinder if missing**
+
+DoubletFinder is not available as `r-doubletfinder` in conda-forge. Install it from GitHub into the pixi R environment:
 
 ```bash
-cd /home/edu-pc/Yale
+cd /home/edu-pc/Yale/Charles
+pixi run Rscript -e 'if (!requireNamespace("DoubletFinder", quietly=TRUE)) remotes::install_github("chris-mcginnis-ucsf/DoubletFinder", upgrade="never")'
+```
+
+- [ ] **Step 2.4: Run**
+
+```bash
+cd /home/edu-pc/Yale/Charles
 pixi run python pipeline/scripts/02_doublets.py \
-  --input Charles/results/01_qc/adata_qc.h5ad \
-  --out Charles/results/02_doublets/
+  --input results/01_qc/adata_qc.h5ad \
+  --out results/02_doublets/ \
+  --expected-rate 0.075 \
+  --pk 0.09 \
+  --install-missing
 ```
 
-Expected: ~5-10% doublets removed per sample.
+Expected: per-sample DoubletFinder scores and calls in `doubletfinder_calls.csv`, a per-sample `doubletfinder_summary.csv`, a score distribution plot, and ~5-10% doublets removed depending on recovered cells/sample.
 
-- [ ] **Step 2.4: Commit**
+For a slower tuning run, add `--auto-pk` to perform DoubletFinder's pK sweep per sample. The default local execution uses `--pk 0.09` to keep the first complete pipeline run tractable.
+
+- [ ] **Step 2.5: Commit**
 
 ```bash
-git add pipeline/scripts/02_doublets.py pixi.toml pixi.lock
-git commit -m "feat: per-sample doublet detection with Scrublet"
+git add pipeline/scripts/02_doublets.py pipeline/scripts/run_doubletfinder.R pixi.toml pixi.lock
+git commit -m "feat: per-sample doublet detection with DoubletFinder"
 ```
 
 ---
@@ -395,7 +418,24 @@ git commit -m "feat: per-sample doublet detection with Scrublet"
 - Store raw counts in `adata.layers["counts"]` before any normalization (required by scVI)
 - Use `sc.pp.normalize_total` + `sc.pp.log1p` for visualization layers only
 - Select 3000 highly variable genes (HVGs) using the `seurat_v3` method (variance-stabilizing, works on counts directly)
-- Exclude mitochondrial genes from HVG list (they are QC metrics, not biology)
+- Exclude mitochondrial, ribosomal, and hemoglobin genes from HVG list (they are QC/technical-dominant signals here, not desired integration features)
+
+### HVG parameter scan
+Before finalizing `n_hvgs`, run:
+
+```bash
+cd /home/edu-pc/Yale/Charles
+pixi run python pipeline/scripts/03_hvg_parameter_scan.py \
+  --input results/02_doublets/adata_no_doublets.h5ad \
+  --out results/03_hvg_scan/ \
+  --n-hvgs-values 1000,2000,3000,4000,5000
+```
+
+Observed in the first run:
+- 3,000 requested HVGs produced 2,915 effective HVGs after excluding 10 mitochondrial, 71 ribosomal, and 4 hemoglobin genes.
+- 2,000 requested HVGs produced 1,918 effective HVGs; 4,000 requested HVGs produced 3,910 effective HVGs.
+
+Final rerun after QC 6/4 and DoubletFinder retained 2,909 effective HVGs after excluding 10 mitochondrial, 77 ribosomal, and 4 hemoglobin genes.
 
 - [ ] **Step 3.1: Create the normalization script**
 
@@ -432,8 +472,11 @@ def main(in_path: str, out_dir: str, n_hvgs: int = 3000):
         span=0.3,
     )
 
-    # Exclude mitochondrial genes from HVGs
-    adata.var.loc[adata.var_names.str.startswith("mt-"), "highly_variable"] = False
+    # Exclude technical/QC-dominant genes from HVGs
+    adata.var["mt"] = adata.var_names.str.startswith(("mt-", "Mt-", "MT-"))
+    adata.var["ribo"] = adata.var_names.str.match(r"^(Rpl|Rps)")
+    adata.var["hb"] = adata.var_names.str.match(r"^(Hba|Hbb)")
+    adata.var.loc[adata.var["mt"] | adata.var["ribo"] | adata.var["hb"], "highly_variable"] = False
 
     n_hvg = adata.var["highly_variable"].sum()
     print(f"HVGs selected: {n_hvg}")
@@ -495,7 +538,7 @@ git commit -m "feat: normalization, log1p, HVG selection (seurat_v3 + batch_key)
 - **n_layers**: 2 (deeper encoder/decoder)
 - GPU training if available (pixi.toml has CUDA 12.8)
 
-- [ ] **Step 4.1: Create the integration script**
+- [x] **Step 4.1: Create the integration script**
 
 ```python
 # pipeline/scripts/04_integrate.py
@@ -576,7 +619,7 @@ if __name__ == "__main__":
     main(args.input, args.out, args.n_latent, args.n_layers, args.max_epochs)
 ```
 
-- [ ] **Step 4.2: Run (GPU recommended, ~15-30 min)**
+- [x] **Step 4.2: Run (GPU recommended, ~15-30 min)**
 
 ```bash
 cd /home/edu-pc/Yale
@@ -588,9 +631,11 @@ pixi run python pipeline/scripts/04_integrate.py \
 
 Expected: ELBO converging, UMAP without obvious pool-based separation.
 
-- [ ] **Step 4.3: Check integration quality**
+- [x] **Step 4.3: Check integration quality**
 
 Inspect `results/04_integrate/umap_pool.png`. If cells cluster strongly by pool (not biology), increase `max_epochs` or adjust `n_latent`.
+
+Run result: GPU training used CUDA on the NVIDIA GeForce RTX 5060 Laptop GPU and stopped by early stopping at epoch 314/400 with best validation ELBO 6732.945. The integrated AnnData has 42,390 cells, `X_scVI` shape `(42390, 30)`, `X_umap` shape `(42390, 2)`, and a neighbors graph. Visual QC note: `pool` is partially confounded with population/donor/treatment, so do not interpret `umap_pool.png` alone as pure batch separation; donor and treatment are broadly mixed while the dominant structure follows population.
 
 - [ ] **Step 4.4: Commit**
 
@@ -608,7 +653,7 @@ git commit -m "feat: scVI batch integration with 30 latent dims, per-sample batc
 - Reads: `results/04_integrate/adata_integrated.h5ad`
 - Writes: `results/05_cluster/adata_clustered.h5ad`
 
-- [ ] **Step 5.1: Create the clustering script**
+- [x] **Step 5.1: Create the clustering script**
 
 ```python
 # pipeline/scripts/05_cluster.py
@@ -656,15 +701,30 @@ if __name__ == "__main__":
     main(args.input, args.out, args.resolution)
 ```
 
-- [ ] **Step 5.2: Run**
+- [x] **Step 5.2: Run**
 
 ```bash
-cd /home/edu-pc/Yale
+cd /home/edu-pc/Yale/Charles
 pixi run python pipeline/scripts/05_cluster.py \
-  --input Charles/results/04_integrate/adata_integrated.h5ad \
-  --out Charles/results/05_cluster/ \
-  --resolution 0.5
+  --input results/04_integrate/adata_integrated.h5ad \
+  --out results/05_cluster/ \
+  --resolution 0.5 \
+  --resolutions 0.3,0.5,0.8,1.0,1.5,2.0,2.5,3.0
 ```
+
+Run result:
+- r=0.3: 10 clusters
+- r=0.5: 14 clusters
+- r=0.8: 20 clusters
+- r=1.0: 23 clusters
+- r=1.5: 27 clusters
+- r=2.0: 36 clusters
+- r=2.5: 40 clusters
+- r=3.0: 46 clusters
+
+The script writes `cluster_resolution_summary.csv`, `cluster_dominance_summary.csv`, `cluster_composition_long.csv`, and per-resolution count/proportion tables for `pool`, `sample_id`, `population`, `donor`, and `treatment`. At r=0.5, clusters 10 and 12 are >80% dominated by `Pool_C` / `D1_DMSO_I_45_2`; both are mostly `Input` and should be checked during marker validation.
+
+Decision: use `leiden_r0.5` as the primary initial clustering resolution. It gives 14 clusters, avoids the overfragmentation seen at r=2.0-3.0, and still separates interpretable major compartments. Keep r=0.8/r=1.0 as secondary resolutions if marker validation shows mixed populations inside a r=0.5 cluster.
 
 - [ ] **Step 5.3: Commit**
 
@@ -688,13 +748,16 @@ git commit -m "feat: Leiden clustering at multiple resolutions"
 
 1. Download Nestorowa 2016 reference via `scrnaseq` R package → convert to AnnData (or use the pre-built version from scvi-hub)
 2. Run popV with the reference
-3. Run CellTypist with `Immune_All_Low.pkl` as validation
+3. Run scANVI/scArches-style label transfer as the secondary method
+4. Validate labels manually against an audited marker table
 
 **About the reference subset question (practical explanation):**
 
 The Nestorowa 2016 reference contains ONLY mouse HSPCs (HSC, MPP, LMPP, CMP, GMP, MEP, CLP, MkP, ErP). There are no other cell types. So for our LSK/LK/Input populations this reference is ideal — no subsetting needed for the HSPC populations.
 
-For the Input (whole BM) fraction, there will be mature immune cells (T cells, B cells, NK cells, neutrophils) that are not in Nestorowa. For these, popV will return an "unknown" or the closest match with low agreement score. These cells can be annotated with CellTypist instead.
+For the Input (whole BM) fraction, there will be mature immune cells (T cells, B cells, NK cells, neutrophils) that are not fully covered by Nestorowa. For these, popV/scANVI may return an "unknown" or the closest HSPC match with low agreement score. These cells must be resolved by marker validation, not by CellTypist.
+
+CellTypist is disabled in this pipeline. In this dataset, `Immune_All_Low.pkl` matched only 7 of 6,639 model genes, making its labels unusable.
 
 **Practical subsetting if you need it (for other datasets):**
 ```python
@@ -707,180 +770,44 @@ ref_sub = ref[ref.obs["cell_type"].isin(hspc_types)].copy()
 - [ ] **Step 6.1: Prepare Nestorowa reference (run once)**
 
 ```python
-# This block is run once to download and save the reference
-# Run interactively or as a separate setup script
-
-import scrnaseq  # pip install scrnaseq — Python wrapper for Bioconductor
-# Alternative: download directly from GEO GSE81682
-
-# Method 1: via scRNAseq R package (recommended) — run in R:
-# library(scRNAseq)
-# ref <- NestorowaHSCData()
-# library(zellkonverter)
-# writeH5AD(ref, "nestorowa_2016_ref.h5ad")
-
-# Method 2: use scanpy built-in (HSPC data from Nestorowa)
-import scanpy as sc
-# The data is not directly in sc.datasets, but Paul15 is:
-paul = sc.datasets.paul15()
-# paul15 has 2730 mouse HSPCs with 19 cell type labels
-# Available labels: HSC, MEP, Ery, CMP, GMP, DC, Mono, Mast, Lympho, Baso, Neu...
-paul.write_h5ad("Charles/data/paul15_reference.h5ad")
-print(paul)
-print(paul.obs["paul15_clusters"].value_counts())
+cd /home/edu-pc/Yale/Charles
+pixi run Rscript pipeline/scripts/prepare_nestorowa_reference.R \
+  --out data/references/nestorowa_2016_hspc.h5ad \
+  --label-col auto \
+  --install-missing
 ```
 
-- [ ] **Step 6.2: Create the annotation script**
+- [x] **Step 6.2: Create the annotation script**
 
 ```python
-# pipeline/scripts/06_annotate.py
-import scanpy as sc
-import anndata as ad
-import numpy as np
-import pandas as pd
-import matplotlib
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import celltypist
-from celltypist import models
-import argparse
-from pathlib import Path
-
-def annotate_with_celltypist(adata: ad.AnnData, out: Path):
-    """CellTypist annotation as validation layer."""
-    # CellTypist requires log-normalized counts (already in lognorm layer)
-    adata_ct = adata.copy()
-    adata_ct.X = adata_ct.layers["lognorm"]
-
-    # Download model if not present
-    models.download_models(model="Immune_All_Low.pkl", force_update=False)
-    model = models.Model.load("Immune_All_Low.pkl")
-
-    # over_clustering=True uses leiden clusters for majority-vote smoothing
-    predictions = celltypist.annotate(
-        adata_ct,
-        model="Immune_All_Low.pkl",
-        majority_voting=True,
-        over_clustering="leiden_r0.5",
-    )
-    adata.obs["celltypist_label"] = predictions.predicted_labels["majority_voting"].values
-    adata.obs["celltypist_conf"] = predictions.predicted_labels["conf_score"].values
-
-    predictions.to_plots(out / "celltypist", show=False)
-    return adata
-
-def annotate_with_paul15(adata: ad.AnnData, ref_path: str, out: Path):
-    """KNN-based label transfer from Paul15 reference in scVI latent space."""
-    from sklearn.neighbors import KNeighborsClassifier
-
-    ref = sc.read_h5ad(ref_path)
-
-    # Compute log-normalized PCA on reference
-    sc.pp.normalize_total(ref, target_sum=1e4)
-    sc.pp.log1p(ref)
-
-    # Find common genes
-    common_genes = adata.var_names.intersection(ref.var_names)
-    print(f"Common genes with Paul15 reference: {len(common_genes)}")
-
-    ref_sub = ref[:, common_genes].copy()
-    query_sub = adata[:, common_genes].copy()
-
-    sc.pp.highly_variable_genes(ref_sub, n_top_genes=2000, flavor="seurat_v3")
-    sc.tl.pca(ref_sub, use_highly_variable=True, n_comps=30)
-
-    # Project query onto reference PCA
-    from sklearn.decomposition import PCA
-    hvg_mask = ref_sub.var["highly_variable"]
-    pca = PCA(n_components=30).fit(ref_sub.X[:, hvg_mask].toarray()
-                                   if hasattr(ref_sub.X, "toarray")
-                                   else ref_sub.X[:, hvg_mask])
-    query_pca = pca.transform(
-        query_sub[:, common_genes[hvg_mask]].layers["lognorm"].toarray()
-        if hasattr(query_sub.layers["lognorm"], "toarray")
-        else query_sub[:, common_genes[hvg_mask]].layers["lognorm"]
-    )
-
-    knn = KNeighborsClassifier(n_neighbors=15, metric="euclidean")
-    knn.fit(ref_sub.obsm["X_pca"], ref.obs["paul15_clusters"].values)
-    labels = knn.predict(query_pca)
-    proba = knn.predict_proba(query_pca).max(axis=1)
-
-    adata.obs["paul15_label"] = labels
-    adata.obs["paul15_conf"] = proba
-    return adata
-
-def main(in_path: str, ref_path: str, out_dir: str):
-    out = Path(out_dir)
-    out.mkdir(parents=True, exist_ok=True)
-    adata = sc.read_h5ad(in_path)
-
-    print("Running CellTypist annotation...")
-    adata = annotate_with_celltypist(adata, out)
-
-    print("Running Paul15 KNN label transfer...")
-    adata = annotate_with_paul15(adata, ref_path, out)
-
-    # Consensus: for each cell, report both labels + agreement
-    adata.obs["labels_agree"] = (
-        adata.obs["celltypist_label"] == adata.obs["paul15_label"]
-    )
-
-    # Summary per cluster
-    for cluster_key in ["leiden_r0.5"]:
-        summary = adata.obs.groupby(cluster_key).agg(
-            paul15_top=("paul15_label", lambda x: x.value_counts().index[0]),
-            ct_top=("celltypist_label", lambda x: x.value_counts().index[0]),
-            n_cells=("paul15_label", "count"),
-        )
-        summary.to_csv(out / f"annotation_summary_{cluster_key}.csv")
-        print(summary)
-
-    # UMAP with annotations
-    for col in ["paul15_label", "celltypist_label"]:
-        sc.pl.umap(adata, color=col, show=False, legend_loc="on data")
-        plt.savefig(out / f"umap_{col}.png", dpi=150, bbox_inches="tight")
-        plt.close()
-
-    adata.write_h5ad(out / "adata_annotated.h5ad")
-    print(f"Saved: {out / 'adata_annotated.h5ad'}")
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--input", required=True)
-    parser.add_argument("--ref", required=True, help="Path to paul15_reference.h5ad")
-    parser.add_argument("--out", required=True)
-    args = parser.parse_args()
-    main(args.input, args.ref, args.out)
+`pipeline/scripts/06_annotate.py` now implements:
+- popV primary annotation, using Nestorowa labels and excluding CellTypist from the default popV method list.
+- scANVI secondary label transfer on the same reference/query gene intersection.
+- per-cluster summaries for `popv_prediction`, `popv_majority_vote_prediction`, and `scanvi_label`.
+See the script for executable details.
 ```
 
-- [ ] **Step 6.3: Download Paul15 reference**
+- [ ] **Step 6.3: Run popV + scANVI annotation**
 
 ```bash
-cd /home/edu-pc/Yale
-pixi run python -c "
-import scanpy as sc
-paul = sc.datasets.paul15()
-paul.write_h5ad('Charles/data/paul15_reference.h5ad')
-print(paul.obs['paul15_clusters'].value_counts())
-"
+cd /home/edu-pc/Yale/Charles
+pixi run -e popv python pipeline/scripts/06_annotate.py \
+  --input results/05_cluster/adata_clustered.h5ad \
+  --ref data/references/nestorowa_2016_hspc.h5ad \
+  --out results/06_annotate/ \
+  --ref-labels-key cell_type \
+  --ref-batch-key reference_batch \
+  --query-batch-key sample_id \
+  --cluster-key leiden_r0.5
 ```
 
-- [ ] **Step 6.4: Run annotation**
-
-```bash
-cd /home/edu-pc/Yale
-pixi run python pipeline/scripts/06_annotate.py \
-  --input Charles/results/05_cluster/adata_clustered.h5ad \
-  --ref Charles/data/paul15_reference.h5ad \
-  --out Charles/results/06_annotate/
-```
+Previous Paul15 KNN output is retained only as a provisional fallback and should not be treated as the final annotation.
 
 - [ ] **Step 6.5: Commit**
 
 ```bash
-git add pipeline/scripts/06_annotate.py
-git commit -m "feat: dual annotation with CellTypist + Paul15 KNN label transfer"
+git add pipeline/scripts/06_annotate.py pipeline/scripts/prepare_nestorowa_reference.R pipeline/config/cell_type_markers.tsv
+git commit -m "feat: popV primary annotation with scANVI secondary transfer"
 ```
 
 ---
@@ -904,7 +831,7 @@ git commit -m "feat: dual annotation with CellTypist + Paul15 KNN label transfer
 | CLP | Il7r (CD127) | Kit (low) |
 | Cycling/proliferating | Mki67, Top2a, Pcna | — |
 
-- [ ] **Step 7.1: Create the marker validation script**
+- [x] **Step 7.1: Create the marker validation script**
 
 ```python
 # pipeline/scripts/07_markers.py
@@ -1008,14 +935,18 @@ if __name__ == "__main__":
     main(args.input, args.out, args.cluster_key)
 ```
 
-- [ ] **Step 7.2: Run**
+- [x] **Step 7.2: Run**
 
 ```bash
-cd /home/edu-pc/Yale
+cd /home/edu-pc/Yale/Charles
 pixi run python pipeline/scripts/07_markers.py \
-  --input Charles/results/06_annotate/adata_annotated.h5ad \
-  --out Charles/results/07_markers/
+  --input results/05_cluster/adata_clustered.h5ad \
+  --out results/07_markers/ \
+  --cluster_key leiden_r0.5 \
+  --watchlist-clusters 10,12
 ```
+
+Run result: marker/QC validation was run before automated reference annotation so the `Pool_C`/sample-dominated clusters could be assessed directly. Cluster 10 is B-like (`Cd79a`, `Ighm`, `Cd79b`, `Ebf1`, `Pax5`) and cluster 12 is T-like (`Cd3d`, `Cd3g`, `Skap1`, `Ms4a4b`). Their median mitochondrial percentages are low (~2.65% and ~2.47%), so they are not obvious low-quality clusters. Treat them as possible mature lymphoid/input contamination or real lineage cells pending reference annotation.
 
 - [ ] **Step 7.3: Commit**
 
@@ -1260,8 +1191,8 @@ params {
     h5_input          = "${projectDir}/../data/count/filtered_feature_bc_matrix.h5"
     ref_h5ad          = "${projectDir}/../data/paul15_reference.h5ad"
     outdir            = "${projectDir}/../results"
-    mito_nmads        = 3.0
-    count_nmads       = 5.0
+    mito_nmads        = 4.0
+    count_nmads       = 6.0
     n_hvgs            = 3000
     n_latent          = 30
     max_epochs        = 400
@@ -1322,8 +1253,8 @@ process {
 h5_input: "../data/count/filtered_feature_bc_matrix.h5"
 ref_h5ad: "../data/paul15_reference.h5ad"
 outdir: "../results"
-mito_nmads: 3.0
-count_nmads: 5.0
+mito_nmads: 4.0
+count_nmads: 6.0
 n_hvgs: 3000
 n_latent: 30
 max_epochs: 400
@@ -1428,12 +1359,12 @@ gh repo create charles-scrna-pipeline --private --push --source .
 ## Self-Review Checklist
 
 - [x] QC: MAD-based per-sample filtering, HTO separated to obsm
-- [x] Doublets: Scrublet per-sample (not full matrix)
+- [x] Doublets: DoubletFinder per-sample through Python-driven R bridge (not full matrix)
 - [x] Normalization: raw counts stored before normalization (required by scVI)
 - [x] HVG: `batch_key=sample_id` for cross-sample HVG selection
 - [x] Integration: scVI with `categorical_covariate_keys` preserving biology
 - [x] Clustering: Leiden at multiple resolutions
-- [x] Annotation: dual CellTypist + Paul15 KNN, agreement column
+- [ ] Annotation: popV primary with Nestorowa reference + scANVI/scArches secondary
 - [x] Markers: dotplot, violin, UMAP expression, Wilcoxon DE
 - [x] Nextflow: all 7 scripts wrapped, local + SLURM profiles
 - [x] GitHub: .gitignore excludes data/results, README explains experiment
@@ -1441,4 +1372,4 @@ gh repo create charles-scrna-pipeline --private --push --source .
 **Known gaps to discuss with PI:**
 - D1_DMSO_LSK_45_2 (134 cells) and D1_STM_LSK_45_2 (290 cells) — decide whether to exclude before integration
 - Ambient RNA: skipped because raw matrix unavailable; note in Methods
-- popV not yet installed in pixi.toml (add `popv` to pypi-dependencies when available; as of 2024 it requires a separate conda env due to dependency conflicts)
+- Nestorowa reference still needs to be generated at `data/references/nestorowa_2016_hspc.h5ad`
