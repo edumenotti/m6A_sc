@@ -169,4 +169,10 @@ run_nichenet(expr, meta,
              cond_receiver = "Mutant_DMSO",
              label         = "Mutant_DMSO_mono_to_prog")
 
+# Healthy baseline: WT_DMSO monocytes → WT_DMSO progenitors
+run_nichenet(expr, meta,
+             cond_sender   = "WT_DMSO",
+             cond_receiver = "WT_DMSO",
+             label         = "WT_DMSO_mono_to_prog")
+
 message("Script 17 (NicheNet) complete. Outputs in: ", args$out)
