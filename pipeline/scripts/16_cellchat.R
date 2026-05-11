@@ -56,7 +56,7 @@ CellChatDB.use <- CellChatDB
 run_cellchat <- function(counts_sub, meta_sub, label) {
   message("  Building CellChat for: ", label)
   cc <- createCellChat(object=counts_sub, meta=meta_sub, group.by="celltype")
-  CellChatDB(cc) <- CellChatDB.use
+  cc@DB <- CellChatDB.use
   cc <- subsetData(cc)
   cc <- identifyOverExpressedGenes(cc)
   cc <- identifyOverExpressedInteractions(cc)
@@ -124,8 +124,13 @@ if (length(cc_list) >= 2) {
   }
 
   # Differential interactions: Mutant_STM vs Mutant_DMSO
+  # Align matrices on common cell types (some types may be dropped per condition
+  # if they have too few cells).
   if (all(c("Mutant_DMSO", "Mutant_STM") %in% names(cc_list))) {
-    pos <- cc_list[["Mutant_STM"]]@net$count - cc_list[["Mutant_DMSO"]]@net$count
+    m_dmso <- cc_list[["Mutant_DMSO"]]@net$count
+    m_stm  <- cc_list[["Mutant_STM"]]@net$count
+    ct_common <- intersect(rownames(m_dmso), rownames(m_stm))
+    pos <- m_stm[ct_common, ct_common] - m_dmso[ct_common, ct_common]
     diff_df <- as.data.frame(as.table(pos))
     colnames(diff_df) <- c("sender", "receiver", "delta_count")
     diff_df <- diff_df[order(-abs(diff_df$delta_count)), ]
