@@ -1,5 +1,5 @@
 [workspace]
-channels = ["conda-forge"]
+channels = ["conda-forge", "bioconda"]
 name = "charles-scrna"
 platforms = ["linux-64"]
 version = "0.1.0"
@@ -21,15 +21,28 @@ igraph = "*"
 numpy = ">=1.23,<2"
 hdf5 = "*"
 cxx-compiler = "*"
+r-base = ">=4.5,<4.6"
+r-seurat = "*"
+r-seuratobject = "*"
+r-matrix = "*"
+r-remotes = "*"
+r-argparse = "*"
+rpy2 = "*"
+bioconductor-scrnaseq = "*"
+bioconductor-zellkonverter = "*"
+bioconductor-singlecellexperiment = "*"
+bioconductor-summarizedexperiment = "*"
+conda = "26.3.1.*"
+"bioconductor-org.mm.eg.db" = ">=3.22.0,<4"
 
 [pypi-dependencies]
 torch = { version = ">=2.0", index = "https://download.pytorch.org/whl/cu128" }
 scvi-tools = ">=1.1,<1.3"
 celltypist = ">=1.6,<2"
-scrublet = ">=0.2.3"
 pydeseq2 = ">=0.4"
 gseapy = ">=0.14"
 decoupler = ">=1.6"
+scikit-misc = ">=0.5,<0.6"
 
 # ── Feature popV (requer pandas<2, já satisfeito aqui) ──
 [feature.popv.pypi-dependencies]
@@ -41,8 +54,10 @@ gdown = ">=4.6"
 annotate = "python pipeline/scripts/06_annotate.py"
 
 [tasks]
+qc-scan   = "python pipeline/scripts/00_qc_parameter_scan.py"
 qc        = "python pipeline/scripts/01_qc.py"
 doublets  = "python pipeline/scripts/02_doublets.py"
+hvg-scan  = "python pipeline/scripts/03_hvg_parameter_scan.py"
 normalize = "python pipeline/scripts/03_normalize.py"
 integrate = "python pipeline/scripts/04_integrate.py"
 cluster   = "python pipeline/scripts/05_cluster.py"
