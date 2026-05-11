@@ -30,9 +30,20 @@ From: ubuntu:22.04
     # This reads pixi.lock exactly — no solver, no drift
     pixi install --locked --manifest-path /project/pixi.toml
 
+    # Install CellChat v2 and NicheNet from GitHub (not on conda-forge/bioconda)
+    echo "=== Installing CellChat v2 and NicheNet from GitHub ===" && \
+    /project/.pixi/envs/default/bin/Rscript -e "
+      options(repos = c(CRAN='https://cloud.r-project.org'))
+      if (!requireNamespace('remotes', quietly=TRUE)) install.packages('remotes')
+      remotes::install_github('jinworks/CellChat', upgrade='never', quiet=TRUE)
+      remotes::install_github('saeyslab/nichenetr', upgrade='never', quiet=TRUE)
+      cat('CellChat + NicheNet installed\n')
+    "
+
     # Smoke-test: Python and R must be importable
     /project/.pixi/envs/default/bin/python -c "import scanpy; print('scanpy', scanpy.__version__)"
     /project/.pixi/envs/default/bin/Rscript -e "library(Seurat); cat('R + Seurat OK\n')"
+    /project/.pixi/envs/default/bin/Rscript -e "library(CellChat); library(nichenetr); cat('CellChat + NicheNet ok\n')"
 
 %environment
     export PIXI_HOME=/opt/pixi
