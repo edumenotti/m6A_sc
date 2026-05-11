@@ -32,7 +32,6 @@ import decoupler as dc
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import scipy.stats as stats
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 sc.settings.verbosity = 1
