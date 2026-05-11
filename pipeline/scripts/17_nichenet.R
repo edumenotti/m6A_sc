@@ -111,19 +111,25 @@ run_nichenet <- function(expr, meta, cond_sender, cond_receiver,
   # Ligand activity
   bg_genes <- rownames(ligand_target)
   activity <- predict_ligand_activities(
-    geneset_oi         = geneset_oi,
+    geneset                    = geneset_oi,
     background_expressed_genes = intersect(receiver_expressed, bg_genes),
-    ligand_target_matrix = ligand_target,
-    potential_ligands  = potential_ligands
+    ligand_target_matrix       = ligand_target,
+    potential_ligands          = potential_ligands
   )
   activity <- activity %>% arrange(desc(pearson))
   write.csv(activity,
             file.path(args$out, paste0("nichenet_ligand_activity_", label, ".csv")),
             row.names=FALSE)
 
-  # Top ligand–target heatmap
-  top_ligands <- head(activity$test_ligand, top_n_ligands)
-  active_lt   <- ligand_target[top_ligands, geneset_oi, drop=FALSE]
+  # Top ligand–target heatmap (intersect to ensure subscripts exist)
+  top_ligands   <- head(activity$test_ligand, top_n_ligands)
+  top_ligands   <- intersect(top_ligands, rownames(ligand_target))
+  valid_targets <- intersect(geneset_oi,   colnames(ligand_target))
+  if (length(top_ligands) == 0 || length(valid_targets) == 0) {
+    message("  Skipping heatmap — no valid ligand/target after intersect")
+    return(activity)
+  }
+  active_lt <- ligand_target[top_ligands, valid_targets, drop=FALSE]
   lt_df <- as.data.frame(active_lt) %>%
     tibble::rownames_to_column("ligand") %>%
     pivot_longer(-ligand, names_to="target", values_to="score") %>%
