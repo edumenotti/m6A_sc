@@ -47,3 +47,11 @@ Rplots.pdf
 # Apptainer/Singularity container images (large binary, not versioned in git)
 *.sif
 *.simg
+
+# Audio recordings (raw meeting audio, not versioned)
+*.m4a
+*.wav
+*.mp3
+
+# R serialized objects (CellChat / NicheNet outputs land in results/ anyway)
+*.rds
