@@ -30,3 +30,8 @@ run_label_transfer: false
 leiden_resolution_manual: 2.0
 annotation_version: "manual_level1_r2.0_2026-05-05"
 manual_annotation_map: "config/manual_annotation_level1_map_leiden_r2.0.tsv"
+
+# ── Interaction analysis (scripts 15–17) ──
+run_interaction_analysis: false
+cellchat_organism: "Mm"
+nichenet_organism: "mouse"

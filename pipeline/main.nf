@@ -51,6 +51,9 @@ include { SUBSET_RECLUSTER }        from './modules/subset_recluster'
 include { FINAL_FIGURES }           from './modules/final_figures'
 include { PROGENITOR_RECLUSTER }       from './modules/progenitor_recluster'
 include { APPLY_PROGENITOR_ANNOTATION } from './modules/apply_progenitor_annotation'
+include { MACROPHAGE_STATES } from './modules/macrophage_states'
+include { CELLCHAT }          from './modules/cellchat'
+include { NICHENET }          from './modules/nichenet'
 
 workflow {
     h5_ch = Channel.fromPath(params.h5_input, checkIfExists: true)
@@ -112,5 +115,25 @@ workflow {
         } else {
             log.info "[progenitor] Skipping APPLY_PROGENITOR_ANNOTATION — annotation map not found at ${params.progenitor_annotation_map}. Fill in the map after reviewing PROGENITOR_RECLUSTER outputs, then re-run."
         }
+    }
+
+    /*
+     * Optional interaction analysis block (run_interaction_analysis=true):
+     *   Requires APPLY_PROGENITOR_ANNOTATION to have produced the annotated h5ad
+     *   with genotype column (replicate 1=WT, 2=Mutant).
+     *   MACROPHAGE_STATES, CELLCHAT, and NICHENET run in parallel.
+     */
+    if (params.run_interaction_analysis) {
+        map_file = file(params.progenitor_annotation_map)
+        if (!map_file.exists()) {
+            error "run_interaction_analysis=true requires progenitor_annotation_map to exist. Run the progenitor sub-workflow first."
+        }
+        prog_annotated_ch = Channel.fromPath(
+            "${params.outdir}/14_progenitor_annotated/adata_progenitor_annotated.h5ad",
+            checkIfExists: true
+        )
+        MACROPHAGE_STATES(prog_annotated_ch)
+        CELLCHAT(prog_annotated_ch)
+        NICHENET(prog_annotated_ch)
     }
 }
