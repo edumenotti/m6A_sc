@@ -51,9 +51,10 @@ include { SUBSET_RECLUSTER }        from './modules/subset_recluster'
 include { FINAL_FIGURES }           from './modules/final_figures'
 include { PROGENITOR_RECLUSTER }       from './modules/progenitor_recluster'
 include { APPLY_PROGENITOR_ANNOTATION } from './modules/apply_progenitor_annotation'
-include { MACROPHAGE_STATES } from './modules/macrophage_states'
-include { CELLCHAT }          from './modules/cellchat'
-include { NICHENET }          from './modules/nichenet'
+include { MACROPHAGE_STATES }  from './modules/macrophage_states'
+include { COMPOSITION_SCCODA } from './modules/composition'
+include { PSEUDOBULK_DEG }     from './modules/pseudobulk_deg'
+include { PATHWAY_ACTIVITY }   from './modules/pathway_activity'
 
 workflow {
     h5_ch = Channel.fromPath(params.h5_input, checkIfExists: true)
@@ -118,22 +119,41 @@ workflow {
     }
 
     /*
-     * Optional interaction analysis block (run_interaction_analysis=true):
+     * Optional downstream analysis block (run_downstream_analysis=true):
      *   Requires APPLY_PROGENITOR_ANNOTATION to have produced the annotated h5ad
      *   with genotype column (replicate 1=WT, 2=Mutant).
-     *   MACROPHAGE_STATES, CELLCHAT, and NICHENET run in parallel.
+     *
+     *   - MACROPHAGE_STATES: per-cell pathway scoring (decoupler ULM, not affected
+     *     by composition confound — see plan 2026-05-12).
+     *   - COMPOSITION_SCCODA: Bayesian compositional analysis (scCODA, CPU-only).
+     *   - PSEUDOBULK_DEG: per-celltype factorial DEG with PyDESeq2 (donor as replicate).
+     *   - PATHWAY_ACTIVITY: pathway scoring per celltype × contrast from DEG stats.
+     *
+     *   The old CellChat/NicheNet block was deprecated 2026-05-12 (composition
+     *   confound + n=2 → exploratory only). Outputs were moved to
+     *   results/_archive_exploratory/; see plan 2026-05-12-composition-and-pseudobulk-analysis.md.
      */
-    if (params.run_interaction_analysis) {
+    if (params.run_downstream_analysis) {
         map_file = file(params.progenitor_annotation_map)
         if (!map_file.exists()) {
-            error "run_interaction_analysis=true requires progenitor_annotation_map to exist. Run the progenitor sub-workflow first."
+            error "run_downstream_analysis=true requires progenitor_annotation_map to exist. Run the progenitor sub-workflow first."
         }
         prog_annotated_ch = Channel.fromPath(
             "${params.outdir}/14_progenitor_annotated/adata_progenitor_annotated.h5ad",
             checkIfExists: true
         )
+        levels_ch = Channel.from('manual_level1', 'manual_level2')
+
         MACROPHAGE_STATES(prog_annotated_ch)
-        CELLCHAT(prog_annotated_ch)
-        NICHENET(prog_annotated_ch)
+
+        sccoda_in = prog_annotated_ch.combine(levels_ch)
+        COMPOSITION_SCCODA(sccoda_in)
+
+        psbk_in = prog_annotated_ch.combine(levels_ch)
+        PSEUDOBULK_DEG(psbk_in)
+
+        PATHWAY_ACTIVITY(
+            PSEUDOBULK_DEG.out[0].combine(levels_ch)
+        )
     }
 }
