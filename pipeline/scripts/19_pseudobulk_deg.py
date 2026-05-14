@@ -133,17 +133,18 @@ def main() -> None:
 
         print(f"\n=== Celltype: {ct} (n_samples={sub.n_obs}) ===")
         meta = sub.obs[["genotype","treatment","donor"]].copy()
-        for col in ("genotype","treatment"):
+        for col in ("genotype","treatment","donor"):
             meta[col] = meta[col].astype("category")
 
-        # Use interaction design only if all 4 condition combinations present
-        # AND each has ≥2 replicates (else design matrix is rank-deficient).
-        n_conds = meta.groupby(["genotype","treatment"]).size()
-        if len(n_conds) == 4 and (n_conds >= 2).all():
-            design = "~ genotype + treatment + genotype:treatment"
+        # Paired design: donor blocks for mouse-level variation (competitive transplant).
+        # WT and Mutant cells come from the same mice, so donor must be a blocking factor.
+        # Drop interaction — with n=2 donors the interaction term is not estimable.
+        n_donors = meta["donor"].nunique()
+        if n_donors >= 2:
+            design = "~ donor + genotype + treatment"
         else:
             design = "~ genotype + treatment"
-            print(f"  Using additive design (missing/under-replicated cells: {n_conds.to_dict()})")
+            print(f"  Using unpaired design (only {n_donors} donor(s) after filtering)")
 
         try:
             dds = DeseqDataSet(

@@ -116,12 +116,14 @@ def main() -> None:
         "sample", "donor", "condition", "genotype", "treatment"
     ])
 
+    # Paired formulas: donor blocks for between-mouse sort variation.
+    # WT and Mutant come from the same mice (competitive transplant).
     contrasts = [
-        ("treatment_in_WT",         "treatment", counts["genotype"] == "WT"),
-        ("treatment_in_Mutant",     "treatment", counts["genotype"] == "Mutant"),
-        ("genotype_in_DMSO",        "genotype",  counts["treatment"] == "DMSO"),
-        ("genotype_in_STM",         "genotype",  counts["treatment"] == "STM"),
-        ("genotype_x_treatment",    "genotype + treatment + genotype:treatment", None),
+        ("treatment_in_WT",         "donor + treatment", counts["genotype"] == "WT"),
+        ("treatment_in_Mutant",     "donor + treatment", counts["genotype"] == "Mutant"),
+        ("genotype_in_DMSO",        "donor + genotype",  counts["treatment"] == "DMSO"),
+        ("genotype_in_STM",         "donor + genotype",  counts["treatment"] == "STM"),
+        ("genotype_x_treatment",    "donor + genotype + treatment", None),
     ]
 
     for name, formula, row_mask in contrasts:
