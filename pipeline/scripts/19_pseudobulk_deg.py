@@ -97,9 +97,121 @@ def main() -> None:
     qc = pdata.obs[["sample","celltype","psbulk_n_cells"]].copy()
     qc.to_csv(os.path.join(args.out, "pseudobulk_samples_per_celltype.csv"), index=False)
 
-    # placeholder for DEG loop (Task 5)
     print(f"Pseudobulk shape: {pdata.shape}")
-    raise SystemExit("Aggregation OK — Task 5 adds PyDESeq2")
+
+    from pydeseq2.dds import DeseqDataSet
+    from pydeseq2.default_inference import DefaultInference
+    from pydeseq2.ds import DeseqStats
+
+    contrasts = [
+        ("treatment", ["treatment", "STM", "DMSO"]),
+        ("genotype",  ["genotype", "Mutant", "WT"]),
+        # interaction handled separately via LRT below
+    ]
+
+    summary_rows = []
+    celltypes = sorted(pdata.obs["celltype"].unique())
+
+    for ct in celltypes:
+        ct_mask = pdata.obs["celltype"] == ct
+        sub = pdata[ct_mask].copy()
+
+        # Drop genes with all-zero counts
+        keep_gene = (sub.X.sum(axis=0) > 0)
+        sub = sub[:, np.asarray(keep_gene).ravel()].copy()
+
+        # Need ≥2 samples per condition AND ≥min-cells in each donor sample
+        per_cond = sub.obs.groupby("condition").size()
+        cell_ok = sub.obs["psbulk_n_cells"] >= args.min_cells
+        if not cell_ok.all():
+            sub = sub[cell_ok.values].copy()
+            per_cond = sub.obs.groupby("condition").size()
+        if (per_cond < 2).any() or sub.n_obs < 6:
+            print(f"  Skipping {ct}: insufficient samples after filtering "
+                  f"({sub.n_obs} samples, per-cond: {per_cond.to_dict()})")
+            continue
+
+        print(f"\n=== Celltype: {ct} (n_samples={sub.n_obs}) ===")
+        meta = sub.obs[["genotype","treatment","donor"]].copy()
+        for col in ("genotype","treatment"):
+            meta[col] = meta[col].astype("category")
+
+        # Use interaction design only if all 4 condition combinations present
+        # AND each has ≥2 replicates (else design matrix is rank-deficient).
+        n_conds = meta.groupby(["genotype","treatment"]).size()
+        if len(n_conds) == 4 and (n_conds >= 2).all():
+            design = "~ genotype + treatment + genotype:treatment"
+        else:
+            design = "~ genotype + treatment"
+            print(f"  Using additive design (missing/under-replicated cells: {n_conds.to_dict()})")
+
+        try:
+            dds = DeseqDataSet(
+                counts=pd.DataFrame(
+                    sub.X.toarray() if hasattr(sub.X, "toarray") else sub.X,
+                    index=sub.obs_names, columns=sub.var_names,
+                ).astype(int),
+                metadata=meta,
+                design=design,
+                inference=DefaultInference(n_cpus=4),
+                quiet=True,
+            )
+            dds.deseq2()
+        except Exception as e:
+            print(f"  Skipping {ct}: deseq2() failed: {e}")
+            continue
+
+        for cname, contrast in contrasts:
+            try:
+                ds = DeseqStats(dds, contrast=contrast, quiet=True)
+                ds.summary()
+                res = ds.results_df.reset_index().rename(columns={"index":"gene"})
+                res["celltype"] = ct
+                res["contrast"] = cname
+                res.to_csv(
+                    os.path.join(args.out, f"deg_{ct}_{cname}.csv"),
+                    index=False
+                )
+                top = res[(res["padj"] < args.padj) & (res["log2FoldChange"].abs() > 1)]
+                top = top.sort_values("padj")
+                top.to_csv(
+                    os.path.join(args.out, f"deg_{ct}_{cname}_top.csv"),
+                    index=False
+                )
+                summary_rows.append({
+                    "celltype": ct,
+                    "contrast": cname,
+                    "n_sig_padj": int((res["padj"] < args.padj).sum()),
+                    "n_sig_padj_lfc1": int(len(top)),
+                    "n_samples": sub.n_obs,
+                })
+
+                # Volcano
+                fig, ax = plt.subplots(figsize=(7, 6))
+                x = res["log2FoldChange"].values
+                y = -np.log10(res["padj"].fillna(1).values)
+                sig = (res["padj"] < args.padj) & (res["log2FoldChange"].abs() > 1)
+                ax.scatter(x[~sig], y[~sig], s=4, c="lightgray", alpha=0.5)
+                ax.scatter(x[sig],  y[sig],  s=8, c="firebrick")
+                ax.axhline(-np.log10(args.padj), c="k", lw=0.5, ls="--")
+                ax.axvline( 1, c="k", lw=0.5, ls="--")
+                ax.axvline(-1, c="k", lw=0.5, ls="--")
+                ax.set_xlabel("log2 FC")
+                ax.set_ylabel("-log10 padj")
+                ax.set_title(f"{ct} — {cname}")
+                fig.tight_layout()
+                fig.savefig(
+                    os.path.join(args.out, f"deg_volcano_{ct}_{cname}.png"),
+                    dpi=150
+                )
+                plt.close(fig)
+            except Exception as e:
+                print(f"  [{ct}/{cname}] failed: {e}")
+
+    pd.DataFrame(summary_rows).to_csv(
+        os.path.join(args.out, "deg_summary.csv"), index=False
+    )
+    print(f"\nScript 19 complete. Outputs in {args.out}/")
 
 
 if __name__ == "__main__":
