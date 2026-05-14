@@ -61,6 +61,7 @@ gseapy = ">=0.14"
 decoupler = ">=2.0"
 scikit-misc = ">=0.5,<0.6"
 sccoda = ">=0.1.9"
+tf-keras = ">=2.15"
 
 # ── Feature popV (requer pandas<2, já satisfeito aqui) ──
 [feature.popv.pypi-dependencies]
