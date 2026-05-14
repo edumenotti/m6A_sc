@@ -1,3 +1,11 @@
+> **DEPRECATED 2026-05-12.** Critical review (see session note kb id=56 plus
+> 2026-05-12 critical-thinking evaluation) found that the CellChat / NicheNet
+> comparative analysis is dominated by composition confounds (sort fractions
+> differ across conditions ≥20×) and is statistically inappropriate at n=2.
+> Replacement plan: `docs/superpowers/plans/2026-05-12-composition-and-pseudobulk-analysis.md`.
+> The 16_cellchat.R / 17_nichenet.R scripts are retained as descriptive tools
+> only; their cross-condition outputs were moved to `results/_archive_exploratory/`.
+
 # scRNA-seq Interaction Analysis (Scripts 15–17) Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
