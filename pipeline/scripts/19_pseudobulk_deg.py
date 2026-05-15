@@ -53,7 +53,7 @@ def parse_args():
     p.add_argument("--input", required=True)
     p.add_argument("--out", default="results/19_pseudobulk_deg")
     p.add_argument("--level", default="manual_level1",
-                   choices=["manual_level1", "manual_level2"])
+                   help="adata.obs column name with cell-type labels")
     p.add_argument("--min-cells", type=int, default=10)
     p.add_argument("--padj", type=float, default=0.05)
     return p.parse_args()

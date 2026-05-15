@@ -51,6 +51,16 @@ bioconductor-singlecellexperiment = "*"
 bioconductor-summarizedexperiment = "*"
 conda = "26.3.1.*"
 "bioconductor-org.mm.eg.db" = ">=3.22.0,<4"
+# HemaScribe deps (R package from RabadanLab/HemaScribe)
+bioconductor-scater = "*"
+bioconductor-singler = "*"
+bioconductor-ucell = "*"
+bioconductor-annotationdbi = "*"
+r-devtools = "*"
+r-biocmanager = "*"
+r-terra = "*"
+r-raster = "*"
+r-gdistance = "*"
 
 [pypi-dependencies]
 torch = { version = ">=2.0", index = "https://download.pytorch.org/whl/cu128" }

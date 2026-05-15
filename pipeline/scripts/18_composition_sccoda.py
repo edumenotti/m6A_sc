@@ -49,7 +49,7 @@ def parse_args():
     p.add_argument("--input", required=True)
     p.add_argument("--out", default="results/18_composition")
     p.add_argument("--level", default="manual_level1",
-                   choices=["manual_level1", "manual_level2"])
+                   help="adata.obs column name with cell-type labels")
     p.add_argument("--ref-type", default=None,
                    help="Reference cell type. Defaults to most-abundant type "
                         "with cells in ALL donor×condition samples.")
