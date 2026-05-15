@@ -2,6 +2,32 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+---
+
+## Status update — 2026-05-15
+
+**Tasks 1–4 completed.** Final architecture diverged from skeleton (Python↔R via MTX bridge, not zellkonverter) — see actual scripts in `pipeline/scripts/21{a,b,c,z}_*` and `pipeline/scripts/validation/21{d,e,f,g,h}_*`.
+
+**Key findings (corrigem hipóteses iniciais):**
+
+1. **Direção do efeito Mutant é OPOSTA ao previsto.** scCODA com `final_annotation` (32 labels granulares) mostra clone Mutant **depletado** de HSC/STHSC/MPP2/MPP3/GP/mGMP (WT > Mutant), e **expandido** em mature B/T/monocyte/pDC (Mutant > WT). Não é "Mutant expande HSC" — é "Mutant tem diferenciação acelerada ou exaustão stem".
+
+2. **"HSC com Dntt/Ighm aberrantes" era artefato de impureza.** Manual_level2 HSC era mistura de HSC+STHSC+MPP3+MPP4. Anotação granular HemaScribe revela que o sinal **Dntt +2.34 padj=1.5e-11**, **Ighm +1.22 padj=3.6e-09**, **Flt3 +0.66 padj=0.002** está no **MPP4 (lymphoid-primed)**, onde é biologicamente esperado. HSC canônico (n=823) não tem essas mudanças após FDR. Biologia revisada: Mutant **hiper-ativa lymphoid-priming no MPP4**.
+
+3. **Assinatura GMP (Rras2↑/Serpine2↓/Prss57↓) totalmente validada** em mGMP (Rras2 +1.89), cMoP (+1.80, sinal mais forte com Itgb7 +0.71), GP (+2.01). Direção e magnitude consistentes com manual_level2 GMP_neutrophil_primed.
+
+4. **Mutant não responde a STM**: `treatment_in_Mutant` retorna 0 credible effects. WT responde (HSC/STHSC/MPP4/cMoP/mGMP depletados sob STM). Hipótese: Mutant já está depletado no baseline, não há mais a depletar.
+
+**Outputs:**
+- `results/18_composition/final_annotation/` (scCODA, 32 labels)
+- `results/19_pseudobulk_deg/final_annotation/` (PyDESeq2, 18 celltypes com min-cells=5)
+- `results/21_hemascribe/composition_concordance.md` (Task 3 Step 4)
+- `results/21_hemascribe/deg_concordance.md` (Task 4 Step 4)
+
+**Tasks 5–6** (HemaScape trajectory + synthesis report) pendentes.
+
+---
+
 **Goal:** Validate the paired-design composition + DEG findings (HSC/MPP/GMP Mutant>WT, Rras2↑/Socs2↓ signature) by re-annotating with HemaScribe under sort-aware priors, then test trajectory consistency with HemaScape. This is **validation, not new analysis** — code must be economical, reuse existing scripts where possible.
 
 **Architecture:** One new annotation column in adata (`hemascribe_label`), gated by sort population priors (LSK / LK / I). Existing scCODA (script 18) and PyDESeq2 (script 19) reused with `--level hemascribe_label`. Trajectory module is one short script. No new Nextflow wiring (validation only).
