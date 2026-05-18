@@ -46,18 +46,14 @@ From: ubuntu:22.04
     fi
 
     # Install HemaScribe (R package from GitHub, not on conda-forge/bioconda).
-    # Deps (RhpcBLASctl, harmony, symphony) must compile from source using
-    # conda-forge's compilers and libs — expose them via PATH + LD_LIBRARY_PATH.
+    # Deps (RhpcBLASctl, harmony, symphony) compile using conda's own toolchain.
+    # DO NOT set custom Makevars: conda R already has correct BLAS config in
+    # its Makeconf. Overriding it breaks the linker. Just expose PATH/LD_LIBRARY_PATH
+    # and set R_LIBS so pixi-installed packages (org.Mm.eg.db) are visible.
     PIXI_ENV=/project/.pixi/envs/default
     export PATH="$PIXI_ENV/bin:$PATH"
     export LD_LIBRARY_PATH="$PIXI_ENV/lib:${LD_LIBRARY_PATH:-}"
-
-    # Tell R's compiler where to find conda BLAS/LAPACK
-    mkdir -p /root/.R
-    cat > /root/.R/Makevars << 'MAKEVARS_EOF'
-BLAS_LIBS = -L/project/.pixi/envs/default/lib -lopenblas
-LAPACK_LIBS = -L/project/.pixi/envs/default/lib -lopenblas
-MAKEVARS_EOF
+    export R_LIBS="$PIXI_ENV/lib/R/library"
 
     echo "=== Installing HemaScribe from GitHub ===" && \
     /project/.pixi/envs/default/bin/Rscript -e "
