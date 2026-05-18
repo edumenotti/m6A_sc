@@ -52,6 +52,10 @@ Rplots.pdf
 *.m4a
 *.wav
 *.mp3
+*_transcript.txt
+
+# Claude Code local config
+.claude/
 
 # R serialized objects (CellChat / NicheNet outputs land in results/ anyway)
 *.rds
