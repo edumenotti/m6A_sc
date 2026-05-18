@@ -1,6 +1,8 @@
 process PSEUDOBULK_DEG {
     tag "pseudobulk_deg_${level}"
-    publishDir "${params.outdir}/19_pseudobulk_deg/${level}", mode: 'copy', saveAs: { fname -> fname.startsWith('deg_outputs/') ? fname.substring('deg_outputs/'.length()) : fname }
+    publishDir "${params.outdir}/19_pseudobulk_deg/${level}", mode: 'copy',
+        pattern: 'deg_outputs/*',
+        saveAs: { fname -> fname.replaceFirst('^deg_outputs/', '') }
     memory '32 GB'
     cpus 4
 

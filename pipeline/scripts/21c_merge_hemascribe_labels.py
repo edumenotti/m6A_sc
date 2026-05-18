@@ -123,11 +123,11 @@ def main():
     if out_dir:
         os.makedirs(out_dir, exist_ok=True)
 
-    print(f"[21b] Loading {args.adata}")
+    print(f"[21c] Loading {args.adata}")
     adata = sc.read_h5ad(args.adata)
     print(f"      shape: {adata.shape}")
 
-    print(f"[21b] Loading labels {args.labels}")
+    print(f"[21c] Loading labels {args.labels}")
     lab = pd.read_csv(args.labels)
     lab = lab.set_index("cell_id")
     # Reindex to AnnData order; missing cells get NaN
@@ -153,7 +153,7 @@ def main():
     n_flag_broad = int(broad_audit["flag"].sum())
     n_flag_fine  = int(fine_audit["flag"].sum())
     n_flag_any   = int((broad_audit["flag"] | fine_audit["flag"]).sum())
-    print(f"\n[21b] Sort-gate conflicts:")
+    print(f"\n[21c] Sort-gate conflicts:")
     print(f"      broad: {n_flag_broad}/{n} ({n_flag_broad/n*100:.1f}%)")
     print(f"      fine : {n_flag_fine}/{n} ({n_flag_fine/n*100:.1f}%)")
     print(f"      any  : {n_flag_any}/{n} ({n_flag_any/n*100:.1f}%)")
@@ -232,8 +232,8 @@ def main():
         fh.write("- hemascribe_sortgate_flag (True where any granularity violates sort prior)\n")
 
     adata.write_h5ad(args.out)
-    print(f"\n[21b] Wrote {args.out}")
-    print(f"[21b] Audit in {args.audit_dir}/")
+    print(f"\n[21c] Wrote {args.out}")
+    print(f"[21c] Audit in {args.audit_dir}/")
 
 
 if __name__ == "__main__":

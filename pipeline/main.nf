@@ -138,19 +138,23 @@ workflow {
         if (!map_file.exists()) {
             error "run_downstream_analysis=true requires progenitor_annotation_map to exist. Run the progenitor sub-workflow first."
         }
-        prog_annotated_ch = Channel.fromPath(
+        // Use file() (value channel) so the same path can feed multiple processes
+        // without queue-channel exhaustion. Recreate Channel.of for each .map()
+        // because operators consume queue channels once.
+        prog_annotated = file(
             "${params.outdir}/14_progenitor_annotated/adata_progenitor_annotated.h5ad",
             checkIfExists: true
         )
-        levels_ch = Channel.from('manual_level1', 'manual_level2')
 
-        MACROPHAGE_STATES(prog_annotated_ch)
+        MACROPHAGE_STATES(prog_annotated)
 
-        sccoda_in = prog_annotated_ch.combine(levels_ch)
-        COMPOSITION_SCCODA(sccoda_in)
+        COMPOSITION_SCCODA(
+            Channel.of('manual_level1', 'manual_level2').map { lvl -> tuple(prog_annotated, lvl) }
+        )
 
-        psbk_in = prog_annotated_ch.combine(levels_ch)
-        PSEUDOBULK_DEG(psbk_in)
+        PSEUDOBULK_DEG(
+            Channel.of('manual_level1', 'manual_level2').map { lvl -> tuple(prog_annotated, lvl) }
+        )
 
         PATHWAY_ACTIVITY(PSEUDOBULK_DEG.out.deg_dir)
     }

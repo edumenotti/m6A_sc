@@ -73,6 +73,9 @@ def parse_args():
 def main():
     args = parse_args()
     out_path = args.out or args.input
+    out_dir = os.path.dirname(out_path)
+    if out_dir:
+        os.makedirs(out_dir, exist_ok=True)
 
     print(f"[21z] Loading {args.input}")
     adata = sc.read_h5ad(args.input)
