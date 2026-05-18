@@ -19,6 +19,10 @@ From: ubuntu:22.04
         libssl-dev \
         libffi-dev \
         git \
+        gfortran \
+        libblas-dev \
+        liblapack-dev \
+        libopenblas-dev \
         && apt-get clean && rm -rf /var/lib/apt/lists/*
 
     # Install pixi to /opt/pixi
@@ -39,7 +43,7 @@ From: ubuntu:22.04
     /project/.pixi/envs/default/bin/Rscript -e "
       options(repos = c(CRAN='https://cloud.r-project.org'))
       if (!requireNamespace('remotes', quietly=TRUE)) install.packages('remotes')
-      remotes::install_github('RabadanLab/HemaScribe', upgrade='never', quiet=TRUE)
+      remotes::install_github('RabadanLab/HemaScribe', upgrade='always', quiet=TRUE)
       cat('HemaScribe installed\n')
     "
 
