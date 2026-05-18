@@ -9,7 +9,6 @@ process COMPOSITION_SCCODA {
 
     output:
     path "sccoda_*"
-    path "*.png", optional: true
 
     script:
     """

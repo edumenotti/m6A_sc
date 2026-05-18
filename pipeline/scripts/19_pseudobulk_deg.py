@@ -89,8 +89,10 @@ def main() -> None:
     )
     pdata.obs["donor"]     = pdata.obs["sample"].str.split("__").str[0]
     pdata.obs["condition"] = pdata.obs["sample"].str.split("__").str[1]
-    pdata.obs["genotype"]  = pdata.obs["condition"].str.split("_").str[0]
-    pdata.obs["treatment"] = pdata.obs["condition"].str.split("_").str[1]
+    # rsplit so genotype tokens containing '_' (e.g. 'KitW_sh') survive intact
+    _cond_parts = pdata.obs["condition"].str.rsplit("_", n=1, expand=True)
+    pdata.obs["genotype"]  = _cond_parts[0]
+    pdata.obs["treatment"] = _cond_parts[1]
 
     # QC table: cells per (sample, celltype)
     # decoupler v2 renamed the cell-count column from 'psbulk_n_cells' to 'psbulk_cells'.
@@ -118,20 +120,21 @@ def main() -> None:
         ct_mask = pdata.obs["celltype"] == ct
         sub = pdata[ct_mask].copy()
 
-        # Drop genes with all-zero counts
-        keep_gene = (sub.X.sum(axis=0) > 0)
-        sub = sub[:, np.asarray(keep_gene).ravel()].copy()
-
-        # Need ≥2 samples per condition AND ≥min-cells in each donor sample
-        per_cond = sub.obs.groupby("condition").size()
+        # 1. Filter samples first: ≥min-cells per donor-sample, ≥2 per condition,
+        #    ≥6 total. Doing this BEFORE the gene filter avoids dropping genes
+        #    that look all-zero only because of samples that will be excluded.
         cell_ok = sub.obs["psbulk_n_cells"] >= args.min_cells
         if not cell_ok.all():
             sub = sub[cell_ok.values].copy()
-            per_cond = sub.obs.groupby("condition").size()
+        per_cond = sub.obs.groupby("condition").size()
         if (per_cond < 2).any() or sub.n_obs < 6:
             print(f"  Skipping {ct}: insufficient samples after filtering "
                   f"({sub.n_obs} samples, per-cond: {per_cond.to_dict()})")
             continue
+
+        # 2. Now drop genes that are all-zero across the retained samples.
+        keep_gene = (sub.X.sum(axis=0) > 0)
+        sub = sub[:, np.asarray(keep_gene).ravel()].copy()
 
         print(f"\n=== Celltype: {ct} (n_samples={sub.n_obs}) ===")
         meta = sub.obs[["genotype","treatment","donor"]].copy()

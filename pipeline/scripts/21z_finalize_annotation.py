@@ -14,8 +14,9 @@ results/21_hemascribe/validation/*):
             (HSC/STHSC/MPP2/3/4/MkP/GMP/CLP)
   Rule 3: everything else → hemascribe_broad
   Rule 4: NO cells become "Unassigned"; QC flags are kept separate
-          qc_sort_leak: mature lineage in stem gate (LSK/LK), per 21g
-              EryP/mGMP/cMoP/Neutrophil/Monocyte/Mast_cell in LSK or LK
+          qc_sort_leak: mature lineage in LSK gate only (per 21g)
+              EryP/mGMP/cMoP/Neutrophil/Monocyte/Mast_cell in LSK
+              (LK-gate committed progenitors are NOT flagged — LK is meant for them)
               (NB: Plasma_cell in LSK is NOT a leak — they are Sca1+ plasmablasts, 21g)
           qc_low_score: hemascribe_score < 0.03 (mostly EryP/Mega legitimately low)
 

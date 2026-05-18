@@ -91,11 +91,14 @@ def main() -> None:
     counts = (
         obs.groupby(["sample", "celltype"]).size().unstack(fill_value=0).reset_index()
     )
-    # Add covariates from the sample name (donor + condition)
+    # Add covariates from the sample name (donor + condition).
+    # rsplit on '_' at maxsplit=1 so genotype tokens containing '_'
+    # (e.g. 'KitW_sh') keep their full prefix.
     counts["donor"] = counts["sample"].str.split("__").str[0]
     counts["condition"] = counts["sample"].str.split("__").str[1]
-    counts["genotype"] = counts["condition"].str.split("_").str[0]
-    counts["treatment"] = counts["condition"].str.split("_").str[1]
+    cond_parts = counts["condition"].str.rsplit("_", n=1, expand=True)
+    counts["genotype"] = cond_parts[0]
+    counts["treatment"] = cond_parts[1]
     counts.to_csv(os.path.join(args.out, "sccoda_counts_per_sample.csv"), index=False)
     print(f"\nCount matrix shape: {counts.shape}")
     print(counts.head().to_string())
