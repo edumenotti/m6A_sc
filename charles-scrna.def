@@ -34,7 +34,10 @@ From: ubuntu:22.04
     #   default — main pipeline (scanpy, Seurat, scCODA, PyDESeq2, decoupler, HemaScribe deps)
     #   popv    — optional reference-based annotation env (run_label_transfer=true)
     pixi install --locked --manifest-path /project/pixi.toml -e default
-    pixi install --locked --manifest-path /project/pixi.toml -e popv
+    # popv env: pixi+uv fails to resolve PyPI packages inside fakeroot containers
+    # Workaround: install conda deps via pixi, then install popv via pip directly
+    pixi install --locked --manifest-path /project/pixi.toml -e popv --no-pypi-updates 2>/dev/null || \
+        /project/.pixi/envs/popv/bin/pip install popv --quiet
 
     # Install HemaScribe (R package from GitHub, not on conda-forge/bioconda).
     # The pixi env already provides r-terra/raster/gdistance + Bioconductor deps
