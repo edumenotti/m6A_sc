@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-21b_merge_hemascribe_labels.py
+21c_merge_hemascribe_labels.py
 
-Companion to 21a_hemascribe.R. Reads the HemaScribe label CSV, merges into
+Companion to 21b_hemascribe.R. Reads the HemaScribe label CSV, merges into
 the AnnData object, applies sort-gate biological priors (LSK / LK / I) to
 flag/reject implausible calls, and writes audit outputs:
 
@@ -25,7 +25,7 @@ flag/reject implausible calls, and writes audit outputs:
         README.md
 
 Usage:
-  pixi run python pipeline/scripts/21b_merge_hemascribe_labels.py \\
+  pixi run python pipeline/scripts/21c_merge_hemascribe_labels.py \\
     --adata results/14_progenitor_annotated/adata_progenitor_annotated.h5ad \\
     --labels results/21_hemascribe/hemascribe_labels.csv \\
     --out results/14_progenitor_annotated/adata_hemascribe.h5ad \\
@@ -110,7 +110,7 @@ def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("--adata", required=True)
     p.add_argument("--labels", required=True,
-                   help="CSV from 21a_hemascribe.R with cell_id, hemascribe_broad, hemascribe_fine, hemascribe_score")
+                   help="CSV from 21b_hemascribe.R with cell_id, hemascribe_broad, hemascribe_fine, hemascribe_score")
     p.add_argument("--out", required=True)
     p.add_argument("--audit-dir", default="results/21_hemascribe")
     return p.parse_args()
@@ -119,7 +119,9 @@ def parse_args():
 def main():
     args = parse_args()
     os.makedirs(args.audit_dir, exist_ok=True)
-    os.makedirs(os.path.dirname(args.out), exist_ok=True)
+    out_dir = os.path.dirname(args.out)
+    if out_dir:
+        os.makedirs(out_dir, exist_ok=True)
 
     print(f"[21b] Loading {args.adata}")
     adata = sc.read_h5ad(args.adata)

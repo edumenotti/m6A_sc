@@ -24,9 +24,14 @@ import os
 import numpy as np
 import pandas as pd
 import scanpy as sc
+import scipy.sparse as sp
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+
+
+def to_dense(x):
+    return x.toarray() if sp.issparse(x) else np.asarray(x)
 
 
 MARKERS = {
@@ -99,7 +104,7 @@ def main():
 
     # ── Per-cell positivity per marker (>0 in lognorm = expressed) ──
     X = adata[:, available].X
-    expr = pd.DataFrame((X > 0).toarray(), index=adata.obs_names, columns=available)
+    expr = pd.DataFrame(to_dense(X) > 0, index=adata.obs_names, columns=available)
     counts = {}
     for grp, genes in MARKERS.items():
         gs = [g for g in genes if g in available]
@@ -118,7 +123,7 @@ def main():
         if len(cells) == 0: continue
         row = {"subgroup": grp, "n_cells": len(cells)}
         for gene in available:
-            sub_X = adata[cells, gene].X.toarray().ravel()
+            sub_X = to_dense(adata[cells, gene].X).ravel()
             row[f"{gene}_mean"] = float(np.mean(sub_X))
             row[f"{gene}_pct_pos"] = float((sub_X > 0).mean() * 100)
         for col in counts_df.columns:

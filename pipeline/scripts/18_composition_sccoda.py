@@ -31,6 +31,7 @@ sccoda_chosen_reference.txt          which reference cell type was selected and 
 """
 import argparse
 import os
+import random
 import warnings
 
 import numpy as np
@@ -42,6 +43,18 @@ import matplotlib.pyplot as plt
 
 warnings.filterwarnings("ignore")
 sc.settings.verbosity = 1
+
+# Reproducibility: scCODA's HMC is stochastic via TF Probability. Seeding numpy,
+# python random and TF covers the call graph; without this credible-effect calls
+# can shift between runs.
+SEED = 42
+random.seed(SEED)
+np.random.seed(SEED)
+try:
+    import tensorflow as tf
+    tf.random.set_seed(SEED)
+except Exception:
+    pass
 
 
 def parse_args():
@@ -118,12 +131,16 @@ def main() -> None:
 
     # Paired formulas: donor blocks for between-mouse sort variation.
     # WT and Mutant come from the same mice (competitive transplant).
+    # NOTE: the last contrast fits main effects of genotype AND treatment on the
+    # full data (no interaction term — n=2 donors leaves no df for interaction).
+    # Named "main_effects_full_data" to avoid the misleading impression of an
+    # interaction model.
     contrasts = [
         ("treatment_in_WT",         "donor + treatment", counts["genotype"] == "WT"),
         ("treatment_in_Mutant",     "donor + treatment", counts["genotype"] == "Mutant"),
         ("genotype_in_DMSO",        "donor + genotype",  counts["treatment"] == "DMSO"),
         ("genotype_in_STM",         "donor + genotype",  counts["treatment"] == "STM"),
-        ("genotype_x_treatment",    "donor + genotype + treatment", None),
+        ("main_effects_full_data",  "donor + genotype + treatment", None),
     ]
 
     for name, formula, row_mask in contrasts:

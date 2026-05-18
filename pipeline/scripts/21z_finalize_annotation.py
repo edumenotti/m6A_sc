@@ -175,7 +175,7 @@ def main():
         fh.write("- 21f: Pro_Pre_B split by HemaScribe is heterogeneity but mislabeled → use manual\n")
         fh.write("- 21g: LSK Plasma_cell is real Sca1+ plasmablast; LSK EryP/mGMP/cMoP are leak (~190)\n")
         fh.write("- 21h: popV LTHSC ↔ HemaScribe HSC+STHSC (84%); popV MEP ↔ HemaScribe MPP2 (91%)\n\n")
-        fh.write(f"## Final distribution ({final.nunique()} labels, 0 unassigned)\n\n```\n")
+        fh.write(f"## Final distribution ({final.nunique()} labels, {int(n_unassigned)} unassigned)\n\n```\n")
         fh.write(summary.to_string())
         fh.write("\n```\n")
 

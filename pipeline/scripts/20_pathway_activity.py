@@ -97,7 +97,8 @@ def main() -> None:
             continue
         mat = df.set_index("gene")[["stat"]].T   # 1 × n_genes
         try:
-            acts, padj = dc.mt.ulm(
+            # dc.mt.ulm returns (activities, RAW p-values) — not FDR-corrected.
+            acts, pvals = dc.mt.ulm(
                 data=mat, net=net, tmin=5, verbose=False
             )
         except Exception as e:
@@ -106,7 +107,7 @@ def main() -> None:
         long = pd.DataFrame({
             "pathway": acts.columns,
             "score":   acts.values.ravel(),
-            "padj":    padj.values.ravel(),
+            "pvalue":  pvals.values.ravel(),
         })
         long["celltype"] = celltype
         long["contrast"] = contrast
@@ -116,6 +117,19 @@ def main() -> None:
         raise SystemExit("No pathway results produced — check DEG inputs")
 
     big = pd.concat(all_results, ignore_index=True)
+
+    # Apply BH FDR per (celltype, contrast) — each (celltype, contrast) tests
+    # ~1500 pathways. Correcting within that family is the standard decoupler
+    # pattern and avoids the false-positive inflation flagged in review.
+    from statsmodels.stats.multitest import multipletests
+    big["padj"] = np.nan
+    for (ct, cn), idx in big.groupby(["celltype", "contrast"]).groups.items():
+        mask = big.loc[idx, "pvalue"].notna()
+        if not mask.any():
+            continue
+        pv = big.loc[idx[mask], "pvalue"].values
+        _, padj_vals, _, _ = multipletests(pv, method="fdr_bh")
+        big.loc[idx[mask], "padj"] = padj_vals
 
     # ── Per-contrast wide tables + heatmaps ─────────────────────────────
     for contrast in big["contrast"].unique():

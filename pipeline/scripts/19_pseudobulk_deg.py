@@ -7,8 +7,10 @@ Donor is the replicate unit (n=2 per condition → 8 donor-level samples per cel
 
 For each celltype with ≥10 cells in every (donor × condition) sample, we:
   1. Sum raw counts across cells → (donor × condition) × gene matrix
-  2. Fit DESeq2 with design ~genotype + treatment + genotype:treatment
-  3. Extract Wald results for treatment, genotype, and interaction
+  2. Fit DESeq2 with paired design ~donor + genotype + treatment
+     (no genotype:treatment interaction — with n=2 donors the interaction
+     term is not estimable; donor blocks for paired competitive transplant)
+  3. Extract Wald results for the treatment and genotype main effects
   4. Write per-celltype CSVs + a global summary
 
 Why this is appropriate:

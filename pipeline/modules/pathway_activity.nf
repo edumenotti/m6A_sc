@@ -5,7 +5,7 @@ process PATHWAY_ACTIVITY {
     cpus 2
 
     input:
-    tuple path(deg_dir), val(level)
+    tuple val(level), path(deg_dir)
 
     output:
     path "pathway_*"

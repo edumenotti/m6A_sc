@@ -152,8 +152,6 @@ workflow {
         psbk_in = prog_annotated_ch.combine(levels_ch)
         PSEUDOBULK_DEG(psbk_in)
 
-        PATHWAY_ACTIVITY(
-            PSEUDOBULK_DEG.out[0].combine(levels_ch)
-        )
+        PATHWAY_ACTIVITY(PSEUDOBULK_DEG.out.deg_dir)
     }
 }

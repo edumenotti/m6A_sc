@@ -29,9 +29,14 @@ import os
 import numpy as np
 import pandas as pd
 import scanpy as sc
+import scipy.sparse as sp
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+
+
+def to_dense(x):
+    return x.toarray() if sp.issparse(x) else np.asarray(x)
 
 
 MARKERS = {
@@ -90,7 +95,7 @@ def main():
         if len(cells) == 0: continue
         row = {"subgroup": grp, "n_cells": len(cells)}
         for g in available:
-            x = adata[cells, g].X.toarray().ravel()
+            x = to_dense(adata[cells, g].X).ravel()
             row[f"{g}_mean"]    = float(x.mean())
             row[f"{g}_pct_pos"] = float((x > 0).mean() * 100)
         rows.append(row)
