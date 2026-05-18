@@ -132,8 +132,8 @@ def main():
     lab = lab.set_index("cell_id")
     # Reindex to AnnData order; missing cells get NaN
     lab = lab.reindex(adata.obs_names)
-    n_missing = lab["hemascribe_broad"].isna().sum() + lab["hemascribe_fine"].isna().sum()
-    print(f"      missing cells in CSV: broad+fine NaN sum = {n_missing}")
+    n_missing = (lab["hemascribe_broad"].isna() | lab["hemascribe_fine"].isna()).sum()
+    print(f"      cells with NaN in broad or fine: {n_missing}")
 
     adata.obs["hemascribe_broad"] = pd.Categorical(lab["hemascribe_broad"])
     adata.obs["hemascribe_fine"]  = pd.Categorical(lab["hemascribe_fine"])

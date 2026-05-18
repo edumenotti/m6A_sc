@@ -134,8 +134,8 @@ workflow {
      *   results/_archive_exploratory/; see plan 2026-05-12-composition-and-pseudobulk-analysis.md.
      */
     if (params.run_downstream_analysis) {
-        map_file = file(params.progenitor_annotation_map)
-        if (!map_file.exists()) {
+        downstream_map_file = file(params.progenitor_annotation_map)
+        if (!downstream_map_file.exists()) {
             error "run_downstream_analysis=true requires progenitor_annotation_map to exist. Run the progenitor sub-workflow first."
         }
         // Use file() (value channel) so the same path can feed multiple processes
@@ -146,7 +146,7 @@ workflow {
             checkIfExists: true
         )
 
-        MACROPHAGE_STATES(prog_annotated)
+        MACROPHAGE_STATES(Channel.of(prog_annotated))
 
         COMPOSITION_SCCODA(
             Channel.of('manual_level1', 'manual_level2').map { lvl -> tuple(prog_annotated, lvl) }
