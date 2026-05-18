@@ -4,7 +4,7 @@ From: ubuntu:22.04
 %labels
     Maintainer Eduardo Menotti
     Project charles-scrna
-    Description scRNA-seq pipeline environment (pixi-locked)
+    Description scRNA-seq pipeline environment (pixi-locked + HemaScribe)
 
 %files
     pixi.toml /project/pixi.toml
@@ -26,24 +26,29 @@ From: ubuntu:22.04
     curl -fsSL https://pixi.sh/install.sh | bash
     export PATH="/opt/pixi/bin:$PATH"
 
-    # Install the locked environment into the container
-    # This reads pixi.lock exactly — no solver, no drift
-    pixi install --locked --manifest-path /project/pixi.toml
+    # Install BOTH locked environments into the container:
+    #   default — main pipeline (scanpy, Seurat, scCODA, PyDESeq2, decoupler, HemaScribe deps)
+    #   popv    — optional reference-based annotation env (run_label_transfer=true)
+    pixi install --locked --manifest-path /project/pixi.toml -e default
+    pixi install --locked --manifest-path /project/pixi.toml -e popv
 
-    # Install CellChat v2 and NicheNet from GitHub (not on conda-forge/bioconda)
-    echo "=== Installing CellChat v2 and NicheNet from GitHub ===" && \
+    # Install HemaScribe (R package from GitHub, not on conda-forge/bioconda).
+    # The pixi env already provides r-terra/raster/gdistance + Bioconductor deps
+    # (scater, SingleR, UCell, AnnotationDbi) so source-builds are avoided.
+    echo "=== Installing HemaScribe from GitHub ===" && \
     /project/.pixi/envs/default/bin/Rscript -e "
       options(repos = c(CRAN='https://cloud.r-project.org'))
       if (!requireNamespace('remotes', quietly=TRUE)) install.packages('remotes')
-      remotes::install_github('jinworks/CellChat', upgrade='never', quiet=TRUE)
-      remotes::install_github('saeyslab/nichenetr', upgrade='never', quiet=TRUE)
-      cat('CellChat + NicheNet installed\n')
+      remotes::install_github('RabadanLab/HemaScribe', upgrade='never', quiet=TRUE)
+      cat('HemaScribe installed\n')
     "
 
-    # Smoke-test: Python and R must be importable
+    # Smoke-test: each language stack must load
     /project/.pixi/envs/default/bin/python -c "import scanpy; print('scanpy', scanpy.__version__)"
-    /project/.pixi/envs/default/bin/Rscript -e "library(Seurat); cat('R + Seurat OK\n')"
-    /project/.pixi/envs/default/bin/Rscript -e "library(CellChat); library(nichenetr); cat('CellChat + NicheNet ok\n')"
+    /project/.pixi/envs/default/bin/python -c "import sccoda, pydeseq2, decoupler; print('sccoda/pydeseq2/decoupler ok')"
+    /project/.pixi/envs/default/bin/Rscript -e "library(Seurat); cat('Seurat OK\n')"
+    /project/.pixi/envs/default/bin/Rscript -e "library(HemaScribe); cat('HemaScribe OK\n')"
+    /project/.pixi/envs/popv/bin/python -c "import popv; print('popv', popv.__version__)"
 
 %environment
     export PIXI_HOME=/opt/pixi
