@@ -46,13 +46,30 @@ From: ubuntu:22.04
     fi
 
     # Install HemaScribe (R package from GitHub, not on conda-forge/bioconda).
-    # The pixi env already provides r-terra/raster/gdistance + Bioconductor deps
-    # (scater, SingleR, UCell, AnnotationDbi) so source-builds are avoided.
+    # Deps (RhpcBLASctl, harmony, symphony) must compile from source using
+    # conda-forge's compilers and libs — expose them via PATH + LD_LIBRARY_PATH.
+    PIXI_ENV=/project/.pixi/envs/default
+    export PATH="$PIXI_ENV/bin:$PATH"
+    export LD_LIBRARY_PATH="$PIXI_ENV/lib:${LD_LIBRARY_PATH:-}"
+
+    # Tell R's compiler where to find conda BLAS/LAPACK
+    mkdir -p /root/.R
+    cat > /root/.R/Makevars << 'MAKEVARS_EOF'
+BLAS_LIBS = -L/project/.pixi/envs/default/lib -lopenblas
+LAPACK_LIBS = -L/project/.pixi/envs/default/lib -lopenblas
+MAKEVARS_EOF
+
     echo "=== Installing HemaScribe from GitHub ===" && \
     /project/.pixi/envs/default/bin/Rscript -e "
       options(repos = c(CRAN='https://cloud.r-project.org'))
       if (!requireNamespace('remotes', quietly=TRUE)) install.packages('remotes')
-      remotes::install_github('RabadanLab/HemaScribe', upgrade='always', quiet=TRUE)
+      # Install compilation-heavy deps explicitly first (verbose to catch errors)
+      install.packages(c('RhpcBLASctl', 'harmony', 'symphony'), Ncpus=4L)
+      remotes::install_github('RabadanLab/HemaScribe', upgrade='never', quiet=FALSE)
+      # Hard fail if package didn't actually install
+      if (!requireNamespace('HemaScribe', quietly=TRUE)) {
+        stop('HemaScribe installation failed — check warnings above')
+      }
       cat('HemaScribe installed\n')
     "
 
