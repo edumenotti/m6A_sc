@@ -55,6 +55,15 @@ From: ubuntu:22.04
     export LD_LIBRARY_PATH="$PIXI_ENV/lib:${LD_LIBRARY_PATH:-}"
     export R_LIBS="$PIXI_ENV/lib/R/library"
 
+    # piggyback is installed by conda (via r-devtools) but the .rdb ends up as a
+    # directory instead of a file, breaking R's lazy loading. Remove it so R can
+    # reinstall it cleanly via CRAN.
+    RLIB=/project/.pixi/envs/default/lib/R/library
+    rm -rf "$RLIB"/00LOCK-*
+    if [ -d "$RLIB/piggyback" ]; then
+        rm -rf "$RLIB/piggyback"
+    fi
+
     echo "=== Installing HemaScribe from GitHub ===" && \
     /project/.pixi/envs/default/bin/Rscript -e "
       options(repos = c(CRAN='https://cloud.r-project.org'))
