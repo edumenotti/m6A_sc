@@ -58,7 +58,15 @@ From: ubuntu:22.04
     echo "=== Installing HemaScribe from GitHub ===" && \
     /project/.pixi/envs/default/bin/Rscript -e "
       options(repos = c(CRAN='https://cloud.r-project.org'))
+      # Explicitly set lib path — more reliable than R_LIBS in conda context
+      .libPaths('/project/.pixi/envs/default/lib/R/library')
       if (!requireNamespace('remotes', quietly=TRUE)) install.packages('remotes')
+      # Ensure org.Mm.eg.db is present (should come from pixi, fallback to Bioconductor)
+      if (!requireNamespace('org.Mm.eg.db', quietly=TRUE)) {
+        message('org.Mm.eg.db not in .libPaths — installing via BiocManager')
+        if (!requireNamespace('BiocManager', quietly=TRUE)) install.packages('BiocManager')
+        BiocManager::install('org.Mm.eg.db', update=FALSE, ask=FALSE)
+      }
       # Install compilation-heavy deps explicitly first (verbose to catch errors)
       install.packages(c('RhpcBLASctl', 'harmony', 'symphony'), Ncpus=4L)
       remotes::install_github('RabadanLab/HemaScribe', upgrade='never', quiet=FALSE)
