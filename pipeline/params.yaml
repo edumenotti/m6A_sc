@@ -35,7 +35,7 @@ manual_annotation_map: "config/manual_annotation_level1_map_leiden_r2.0.tsv"
 # Replaces the deprecated run_interaction_analysis flag. Runs MACROPHAGE_STATES,
 # COMPOSITION_SCCODA, PSEUDOBULK_DEG, PATHWAY_ACTIVITY. CellChat/NicheNet outputs
 # were archived 2026-05-12 (composition confound + n=2 → exploratory only).
-run_downstream_analysis: false
+run_downstream_analysis: true
 pseudobulk_min_cells: 10
 pathway_organism: "mouse"
 cellchat_organism: "Mm"  # kept for backward compat if 16/17 are re-run manually
