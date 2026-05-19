@@ -19,6 +19,8 @@ findings.md
 progress.md
 task_plan.md
 .Rprofile
+docs/superpowers/
+docs/
 
 # Zone.Identifier (Windows/WSL artifact)
 *:Zone.Identifier
