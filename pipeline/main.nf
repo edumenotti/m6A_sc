@@ -1,7 +1,12 @@
 /*
  * Usage:
- *   Local (pixi installed):  nextflow run main.nf -profile local  -params-file params.yaml
- *   Yale HPC (Apptainer):    nextflow run main.nf -profile apptainer,slurm -params-file params.yaml
+ *   Local workstation (pixi installed):
+ *     nextflow run main.nf -params-file params.yaml --h5_input /path/to/filtered_feature_bc_matrix.h5
+ *   Yale Bouchet (Apptainer + SLURM):
+ *     nextflow run main.nf -profile bouchet -params-file params.yaml \
+ *       --h5_input /path/to/filtered_feature_bc_matrix.h5
+ *   Other SLURM cluster: copy the `bouchet` profile in nextflow.config, set your
+ *     CPU/GPU partition names, and run with that profile.
  *
  * Build container (once, from project root):
  *   sudo apptainer build charles-scrna.sif charles-scrna.def        # local with sudo
