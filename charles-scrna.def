@@ -65,34 +65,43 @@ From: ubuntu:22.04
         rm -rf "$RLIB/piggyback"
     fi
 
+    # These installs are split into SEPARATE Rscript sessions on purpose:
+    # BiocManager::install() (org.Mm.eg.db step) can terminate a non-interactive R
+    # session early, which previously swallowed the symphony + HemaScribe installs
+    # in the same -e block (HemaScribe silently never installed). Separate sessions
+    # isolate that; set -e + stopifnot make any failure halt the build clearly.
+
+    # 1. org.Mm.eg.db (HemaScribe runtime dep) — isolated BiocManager session.
+    echo "=== Ensuring org.Mm.eg.db ===" && \
+    /project/.pixi/envs/default/bin/Rscript -e "
+      .libPaths('/project/.pixi/envs/default/lib/R/library')
+      if (!requireNamespace('org.Mm.eg.db', quietly=TRUE)) {
+        if (!requireNamespace('BiocManager', quietly=TRUE)) install.packages('BiocManager', repos='https://cloud.r-project.org')
+        BiocManager::install('org.Mm.eg.db', update=FALSE, ask=FALSE)
+      }
+      stopifnot(requireNamespace('org.Mm.eg.db', quietly=TRUE))
+    "
+
+    # 2. Compile-heavy HemaScribe deps. Ncpus=1 → serial compile, lower peak RAM
+    #    (parallel installs OOM-killed symphony/RcppArmadillo on small build nodes).
+    echo "=== Installing HemaScribe deps (RhpcBLASctl/harmony/symphony) ===" && \
+    /project/.pixi/envs/default/bin/Rscript -e "
+      options(repos = c(CRAN='https://cloud.r-project.org'))
+      .libPaths('/project/.pixi/envs/default/lib/R/library')
+      install.packages(c('RhpcBLASctl', 'harmony', 'symphony'), Ncpus=1L)
+      stopifnot(all(vapply(c('RhpcBLASctl','harmony','symphony'), requireNamespace, logical(1), quietly=TRUE)))
+    "
+
+    # 3. HemaScribe itself. Pinned commit + --no-help (cluster help-index bug).
     echo "=== Installing HemaScribe from GitHub ===" && \
     /project/.pixi/envs/default/bin/Rscript -e "
       options(repos = c(CRAN='https://cloud.r-project.org'))
-      # Explicitly set lib path — more reliable than R_LIBS in conda context
       .libPaths('/project/.pixi/envs/default/lib/R/library')
       if (!requireNamespace('remotes', quietly=TRUE)) install.packages('remotes')
-      # Ensure org.Mm.eg.db is present (should come from pixi, fallback to Bioconductor)
-      if (!requireNamespace('org.Mm.eg.db', quietly=TRUE)) {
-        message('org.Mm.eg.db not in .libPaths — installing via BiocManager')
-        if (!requireNamespace('BiocManager', quietly=TRUE)) install.packages('BiocManager')
-        BiocManager::install('org.Mm.eg.db', update=FALSE, ask=FALSE)
-      }
-      # Install compilation-heavy deps explicitly first (verbose to catch errors)
-      # Ncpus=1: compile serially. symphony pulls RcppArmadillo, whose C++ compile
-      # is memory-heavy; parallel installs spike peak RAM and get OOM-killed on
-      # smaller build nodes ("symphony had non-zero exit status" with no clear error).
-      install.packages(c('RhpcBLASctl', 'harmony', 'symphony'), Ncpus=1L)
-      # Pinned to a fixed commit for reproducible builds (was unpinned HEAD).
-      # --no-docs/--no-help/--no-html: skip help-index generation, which fails on
-      # the cluster build filesystem ('help/AnIndex: it is a directory'); the
-      # in-container package does not need its man pages.
       remotes::install_github('RabadanLab/HemaScribe@d50c844564f8505469b2efab602cce76e78b06a5',
                               upgrade='never', quiet=FALSE,
                               INSTALL_opts = c('--no-docs', '--no-help', '--no-html'))
-      # Hard fail if package didn't actually install
-      if (!requireNamespace('HemaScribe', quietly=TRUE)) {
-        stop('HemaScribe installation failed — check warnings above')
-      }
+      stopifnot(requireNamespace('HemaScribe', quietly=TRUE))
       cat('HemaScribe installed\n')
     "
 
