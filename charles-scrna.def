@@ -120,6 +120,9 @@ From: ubuntu:22.04
     export PIXI_PROJECT_DIR=/project
     export R_LIBS_USER=/project/.pixi/envs/default/lib/R/library
     export XDG_CACHE_HOME=/project/.cache
+    # site-packages + $HOME are read-only at runtime; send writable caches to /tmp.
+    export NUMBA_CACHE_DIR=/tmp/numba_cache
+    export MPLCONFIGDIR=/tmp/mpl_cache
 
 %runscript
     exec "$@"
