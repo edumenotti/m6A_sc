@@ -92,6 +92,24 @@ From: ubuntu:22.04
       cat('HemaScribe installed\n')
     "
 
+    # DoubletFinder (GitHub, not on conda) — used by the doublets step (02). Baked
+    # in so the runtime --install-missing is a no-op: the R lib is read-only at
+    # runtime and HPC compute nodes are offline. Pinned + --no-help like HemaScribe;
+    # deps (fields/maps/spam) come from CRAN.
+    echo "=== Installing DoubletFinder from GitHub ===" && \
+    /project/.pixi/envs/default/bin/Rscript -e "
+      options(repos = c(CRAN='https://cloud.r-project.org'))
+      .libPaths('/project/.pixi/envs/default/lib/R/library')
+      if (!requireNamespace('remotes', quietly=TRUE)) install.packages('remotes')
+      remotes::install_github('chris-mcginnis-ucsf/DoubletFinder@1b244d8f0d54b4b1cb4365639931bbb16f01e1cd',
+                              upgrade='never', quiet=FALSE,
+                              INSTALL_opts = c('--no-docs', '--no-help', '--no-html'))
+      if (!requireNamespace('DoubletFinder', quietly=TRUE)) {
+        stop('DoubletFinder installation failed — check warnings above')
+      }
+      cat('DoubletFinder installed\n')
+    "
+
     # Pre-cache the HemaScribe reference at build time so runtime needs no internet
     # (HPC compute nodes are typically offline). Script 21b also calls these inside
     # try(), so a populated cache is simply reused. XDG_CACHE_HOME is fixed to an
@@ -112,6 +130,7 @@ From: ubuntu:22.04
     /project/.pixi/envs/default/bin/python -c "import sccoda, pydeseq2, decoupler; print('sccoda/pydeseq2/decoupler ok')"
     /project/.pixi/envs/default/bin/Rscript -e "library(Seurat); cat('Seurat OK\n')"
     /project/.pixi/envs/default/bin/Rscript -e "library(HemaScribe); cat('HemaScribe OK\n')"
+    /project/.pixi/envs/default/bin/Rscript -e "library(DoubletFinder); cat('DoubletFinder OK\n')"
     /project/.pixi/envs/popv/bin/python -c "import popv; print('popv', popv.__version__)"
 
 %environment
