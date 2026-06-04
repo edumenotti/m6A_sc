@@ -65,8 +65,10 @@ KEEP = [
 def parse_args():
     p = argparse.ArgumentParser()
     p.add_argument("--input", required=True)
-    p.add_argument("--backup", required=True,
-                   help="Path to the pre-cleanup backup (must already exist)")
+    p.add_argument("--backup", default=None,
+                   help="Pre-cleanup backup; required only for an in-place rewrite "
+                        "(--out omitted or equal to --input). Not needed when --out "
+                        "is a distinct path (e.g. under Nextflow).")
     p.add_argument("--out", default=None, help="default: overwrite --input")
     return p.parse_args()
 
@@ -74,12 +76,17 @@ def parse_args():
 def main():
     args = parse_args()
     out_path = args.out or args.input
+    in_place = os.path.abspath(out_path) == os.path.abspath(args.input)
 
-    if not os.path.exists(args.backup):
-        raise SystemExit(
-            f"[22] Refusing to run: backup {args.backup} does not exist. "
-            "Make a backup first."
-        )
+    if in_place:
+        # Overwriting the input — a backup MUST exist (manual-workflow safety).
+        if not args.backup or not os.path.exists(args.backup):
+            raise SystemExit(
+                "[22] Refusing in-place rewrite without an existing --backup. "
+                "Pass a distinct --out (e.g. under Nextflow) or make a backup first."
+            )
+    elif args.backup and not os.path.exists(args.backup):
+        raise SystemExit(f"[22] --backup {args.backup} does not exist.")
 
     print(f"[22] Loading {args.input}")
     adata = sc.read_h5ad(args.input)
@@ -107,7 +114,9 @@ def main():
         "date": "2026-06-04",
         "canonical_annotation": "cell_type",
         "renamed": present_rename,
-        "backup_with_all_columns": os.path.basename(args.backup),
+        "backup_with_all_columns": (
+            os.path.basename(args.backup) if args.backup else "none (out != input)"
+        ),
         "dropped_columns": sorted(dropped),
         "note": (
             "Legacy popV/scANVI and an old `final_cell_type` round were removed. "

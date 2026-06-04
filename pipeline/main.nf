@@ -55,6 +55,11 @@ include { MACROPHAGE_STATES }  from './modules/macrophage_states'
 include { COMPOSITION_SCCODA } from './modules/composition'
 include { PSEUDOBULK_DEG }     from './modules/pseudobulk_deg'
 include { PATHWAY_ACTIVITY }   from './modules/pathway_activity'
+include { EXPORT_FOR_HEMASCRIBE } from './modules/export_for_hemascribe'
+include { HEMASCRIBE }            from './modules/hemascribe'
+include { MERGE_HEMASCRIBE }      from './modules/merge_hemascribe'
+include { FINALIZE_ANNOTATION }   from './modules/finalize_annotation'
+include { CLEAN_COLUMNS }         from './modules/clean_columns'
 
 workflow {
     h5_ch = Channel.fromPath(params.h5_input, checkIfExists: true)
@@ -103,6 +108,7 @@ workflow {
     SUBSET_RECLUSTER(APPLY_MANUAL_ANNOTATION.out.h5ad)
     FINAL_FIGURES(SUBSET_RECLUSTER.out.h5ad)
 
+    prog_annotated_ch = Channel.empty()
     if (params.run_progenitor_recluster) {
         PROGENITOR_RECLUSTER(SUBSET_RECLUSTER.out.h5ad)
 
@@ -113,6 +119,7 @@ workflow {
                 PROGENITOR_RECLUSTER.out.assignments,
                 Channel.fromPath(params.progenitor_annotation_map, checkIfExists: true)
             )
+            prog_annotated_ch = APPLY_PROGENITOR_ANNOTATION.out.h5ad.first()
         } else {
             log.info "[progenitor] Skipping APPLY_PROGENITOR_ANNOTATION — annotation map not found at ${params.progenitor_annotation_map}. Fill in the map after reviewing PROGENITOR_RECLUSTER outputs, then re-run."
         }
@@ -120,42 +127,43 @@ workflow {
 
     /*
      * Optional downstream analysis block (run_downstream_analysis=true):
-     *   Requires APPLY_PROGENITOR_ANNOTATION to have produced the annotated h5ad
-     *   with genotype column (replicate 1=WT, 2=Mutant).
+     *   Reproduces the canonical annotation and the analyses reported to the lab.
      *
-     *   - MACROPHAGE_STATES: per-cell pathway scoring (decoupler ULM, not affected
-     *     by composition confound — see plan 2026-05-12).
-     *   - COMPOSITION_SCCODA: Bayesian compositional analysis (scCODA, CPU-only).
-     *   - PSEUDOBULK_DEG: per-celltype factorial DEG with PyDESeq2 (donor as replicate).
-     *   - PATHWAY_ACTIVITY: pathway scoring per celltype × contrast from DEG stats.
+     *   Canonical-annotation chain (scripts 21a/b/c → 21z → 22):
+     *     EXPORT_FOR_HEMASCRIBE → HEMASCRIBE → MERGE_HEMASCRIBE
+     *       → FINALIZE_ANNOTATION (adds cell_type) → CLEAN_COLUMNS
+     *     produces results/14_progenitor_annotated/adata_hemascribe.h5ad
+     *     (canonical `cell_type`, 32 types).
+     *
+     *   Analyses on the canonical `cell_type` level (params.downstream_levels):
+     *     - MACROPHAGE_STATES: per-cell pathway scoring (decoupler ULM) on the manual object.
+     *     - COMPOSITION_SCCODA: Bayesian compositional analysis (scCODA, CPU-only).
+     *     - PSEUDOBULK_DEG: per-celltype factorial DEG with PyDESeq2 (donor as replicate).
+     *     - PATHWAY_ACTIVITY: pathway scoring per celltype × contrast from DEG stats.
      *
      *   The old CellChat/NicheNet block was deprecated 2026-05-12 (composition
-     *   confound + n=2 → exploratory only). Outputs were moved to
-     *   results/_archive_exploratory/; see plan 2026-05-12-composition-and-pseudobulk-analysis.md.
+     *   confound + n=2 → exploratory only); see results/_archive_exploratory/.
      */
     if (params.run_downstream_analysis) {
-        downstream_map_file = file(params.progenitor_annotation_map)
-        if (!downstream_map_file.exists()) {
-            error "run_downstream_analysis=true requires progenitor_annotation_map to exist. Run the progenitor sub-workflow first."
+        if (!params.run_progenitor_recluster || !file(params.progenitor_annotation_map).exists()) {
+            error "run_downstream_analysis=true requires run_progenitor_recluster=true and a filled ${params.progenitor_annotation_map}, so APPLY_PROGENITOR_ANNOTATION can produce adata_progenitor_annotated.h5ad first."
         }
-        // Use file() (value channel) so the same path can feed multiple processes
-        // without queue-channel exhaustion. Recreate Channel.of for each .map()
-        // because operators consume queue channels once.
-        prog_annotated = file(
-            "${params.outdir}/14_progenitor_annotated/adata_progenitor_annotated.h5ad",
-            checkIfExists: true
-        )
 
-        MACROPHAGE_STATES(Channel.of(prog_annotated))
+        // Per-cell macrophage states run on the manual (pre-HemaScribe) object.
+        MACROPHAGE_STATES(prog_annotated_ch)
 
-        COMPOSITION_SCCODA(
-            Channel.of('manual_level1', 'manual_level2').map { lvl -> tuple(prog_annotated, lvl) }
-        )
+        // Canonical annotation chain → adata_hemascribe.h5ad (cell_type).
+        EXPORT_FOR_HEMASCRIBE(prog_annotated_ch)
+        HEMASCRIBE(EXPORT_FOR_HEMASCRIBE.out.export_dir)
+        MERGE_HEMASCRIBE(prog_annotated_ch.combine(HEMASCRIBE.out.labels))
+        FINALIZE_ANNOTATION(MERGE_HEMASCRIBE.out.h5ad)
+        CLEAN_COLUMNS(FINALIZE_ANNOTATION.out.h5ad)
+        canonical_ch = CLEAN_COLUMNS.out.h5ad.first()
 
-        PSEUDOBULK_DEG(
-            Channel.of('manual_level1', 'manual_level2').map { lvl -> tuple(prog_annotated, lvl) }
-        )
-
+        // Downstream analyses on the canonical cell_type level(s).
+        levels_ch = Channel.fromList(params.downstream_levels.tokenize(','))
+        COMPOSITION_SCCODA(canonical_ch.combine(levels_ch))
+        PSEUDOBULK_DEG(canonical_ch.combine(levels_ch))
         PATHWAY_ACTIVITY(PSEUDOBULK_DEG.out.deg_dir)
     }
 }

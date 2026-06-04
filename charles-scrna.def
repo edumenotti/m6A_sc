@@ -78,12 +78,28 @@ From: ubuntu:22.04
       }
       # Install compilation-heavy deps explicitly first (verbose to catch errors)
       install.packages(c('RhpcBLASctl', 'harmony', 'symphony'), Ncpus=4L)
-      remotes::install_github('RabadanLab/HemaScribe', upgrade='never', quiet=FALSE)
+      # Pinned to a fixed commit for reproducible builds (was unpinned HEAD).
+      remotes::install_github('RabadanLab/HemaScribe@d50c844564f8505469b2efab602cce76e78b06a5', upgrade='never', quiet=FALSE)
       # Hard fail if package didn't actually install
       if (!requireNamespace('HemaScribe', quietly=TRUE)) {
         stop('HemaScribe installation failed — check warnings above')
       }
       cat('HemaScribe installed\n')
+    "
+
+    # Pre-cache the HemaScribe reference at build time so runtime needs no internet
+    # (HPC compute nodes are typically offline). Script 21b also calls these inside
+    # try(), so a populated cache is simply reused. XDG_CACHE_HOME is fixed to an
+    # in-image path so build- and run-time agree regardless of Apptainer's home mount.
+    export XDG_CACHE_HOME=/project/.cache
+    mkdir -p "$XDG_CACHE_HOME"
+    echo "=== Pre-caching HemaScribe reference ===" && \
+    /project/.pixi/envs/default/bin/Rscript -e "
+      .libPaths('/project/.pixi/envs/default/lib/R/library')
+      library(HemaScribe)
+      try(download_data())
+      try(download_mapping_data())
+      cat('HemaScribe reference pre-cache attempted\n')
     "
 
     # Smoke-test: each language stack must load
@@ -98,6 +114,7 @@ From: ubuntu:22.04
     export PATH="/opt/pixi/bin:/project/.pixi/envs/default/bin:$PATH"
     export PIXI_PROJECT_DIR=/project
     export R_LIBS_USER=/project/.pixi/envs/default/lib/R/library
+    export XDG_CACHE_HOME=/project/.cache
 
 %runscript
     exec "$@"

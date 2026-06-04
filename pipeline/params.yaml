@@ -31,12 +31,15 @@ leiden_resolution_manual: 2.0
 annotation_version: "manual_level1_r2.0_2026-05-05"
 manual_annotation_map: "config/manual_annotation_level1_map_leiden_r2.0.tsv"
 
-# ── Downstream analysis (scripts 15, 18, 19, 20) ──
-# Replaces the deprecated run_interaction_analysis flag. Runs MACROPHAGE_STATES,
-# COMPOSITION_SCCODA, PSEUDOBULK_DEG, PATHWAY_ACTIVITY. CellChat/NicheNet outputs
-# were archived 2026-05-12 (composition confound + n=2 → exploratory only).
+# ── Downstream analysis (scripts 15, 21a/b/c, 21z, 22, 18, 19, 20) ──
+# Runs the canonical-annotation chain (HemaScribe → finalize → cleanup, producing
+# adata_hemascribe.h5ad with `cell_type`) then MACROPHAGE_STATES, COMPOSITION_SCCODA,
+# PSEUDOBULK_DEG, PATHWAY_ACTIVITY on that object. CellChat/NicheNet outputs were
+# archived 2026-05-12 (composition confound + n=2 → exploratory only).
 run_downstream_analysis: true
 pseudobulk_min_cells: 10
 pathway_organism: "mouse"
+# Cell-type level(s) for composition/DEG (comma-separated). Default: canonical cell_type.
+downstream_levels: "cell_type"
 cellchat_organism: "Mm"  # kept for backward compat if 16/17 are re-run manually
 nichenet_organism: "mouse"
