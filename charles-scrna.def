@@ -77,7 +77,10 @@ From: ubuntu:22.04
         BiocManager::install('org.Mm.eg.db', update=FALSE, ask=FALSE)
       }
       # Install compilation-heavy deps explicitly first (verbose to catch errors)
-      install.packages(c('RhpcBLASctl', 'harmony', 'symphony'), Ncpus=4L)
+      # Ncpus=1: compile serially. symphony pulls RcppArmadillo, whose C++ compile
+      # is memory-heavy; parallel installs spike peak RAM and get OOM-killed on
+      # smaller build nodes ("symphony had non-zero exit status" with no clear error).
+      install.packages(c('RhpcBLASctl', 'harmony', 'symphony'), Ncpus=1L)
       # Pinned to a fixed commit for reproducible builds (was unpinned HEAD).
       # --no-docs/--no-help/--no-html: skip help-index generation, which fails on
       # the cluster build filesystem ('help/AnIndex: it is a directory'); the
