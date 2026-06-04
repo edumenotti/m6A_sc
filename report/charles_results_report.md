@@ -28,5 +28,3 @@
 - With two donors per group, effect sizes (especially for the treatment contrast) are best read qualitatively rather than as precise estimates.
 - The lymphoid compartment is unevenly represented across samples, so lymphoid composition changes are not interpreted here.
 - Results for the rarest populations (basophils, megakaryocytes) rest on small numbers and are tentative; scCODA credibility indicates direction, not a calibrated effect size.
-
-*Analysis code, processed data objects, and the underlying result tables are available on request.*
