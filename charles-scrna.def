@@ -79,7 +79,12 @@ From: ubuntu:22.04
       # Install compilation-heavy deps explicitly first (verbose to catch errors)
       install.packages(c('RhpcBLASctl', 'harmony', 'symphony'), Ncpus=4L)
       # Pinned to a fixed commit for reproducible builds (was unpinned HEAD).
-      remotes::install_github('RabadanLab/HemaScribe@d50c844564f8505469b2efab602cce76e78b06a5', upgrade='never', quiet=FALSE)
+      # --no-docs/--no-help/--no-html: skip help-index generation, which fails on
+      # the cluster build filesystem ('help/AnIndex: it is a directory'); the
+      # in-container package does not need its man pages.
+      remotes::install_github('RabadanLab/HemaScribe@d50c844564f8505469b2efab602cce76e78b06a5',
+                              upgrade='never', quiet=FALSE,
+                              INSTALL_opts = c('--no-docs', '--no-help', '--no-html'))
       # Hard fail if package didn't actually install
       if (!requireNamespace('HemaScribe', quietly=TRUE)) {
         stop('HemaScribe installation failed — check warnings above')
