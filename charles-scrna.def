@@ -11,6 +11,7 @@ From: ubuntu:22.04
     pixi.lock /project/pixi.lock
 
 %post
+    set -e   # fail the build at the first error instead of producing a broken .sif
     export DEBIAN_FRONTEND=noninteractive
     apt-get update && apt-get install -y \
         curl \
@@ -113,19 +114,26 @@ From: ubuntu:22.04
       cat('DoubletFinder installed\n')
     "
 
-    # Pre-cache the HemaScribe reference at build time so runtime needs no internet
-    # (HPC compute nodes are typically offline). Script 21b also calls these inside
-    # try(), so a populated cache is simply reused. XDG_CACHE_HOME is fixed to an
-    # in-image path so build- and run-time agree regardless of Apptainer's home mount.
-    export XDG_CACHE_HOME=/project/.cache
-    mkdir -p "$XDG_CACHE_HOME"
-    echo "=== Pre-caching HemaScribe reference ===" && \
+    # Pre-stage the HemaScribe reference DATA at build time so the package loads
+    # offline. HemaScribe's .onAttach downloads via piggyback into
+    # tools::R_user_dir("HemaScribe","data") = $XDG_DATA_HOME/R/HemaScribe, and
+    # ONLY downloads if the files are absent. We point XDG_DATA_HOME at an in-image
+    # path and trigger the download here (the build node has internet); at runtime
+    # the same XDG_DATA_HOME makes the files already-present, so .onAttach skips the
+    # network entirely (HPC compute nodes are offline). NB: it is XDG_DATA_HOME, not
+    # XDG_CACHE_HOME — R_user_dir(...,"data") uses the data dir.
+    export XDG_DATA_HOME=/project/.local/share
+    export XDG_CACHE_HOME=/project/.cache   # piggyback's GitHub cache (build-time only)
+    mkdir -p "$XDG_DATA_HOME" "$XDG_CACHE_HOME"
+    echo "=== Pre-staging HemaScribe reference data ===" && \
     /project/.pixi/envs/default/bin/Rscript -e "
       .libPaths('/project/.pixi/envs/default/lib/R/library')
-      library(HemaScribe)
-      try(download_data())
-      try(download_mapping_data())
-      cat('HemaScribe reference pre-cache attempted\n')
+      library(HemaScribe)   # .onAttach fetches data into XDG_DATA_HOME/R/HemaScribe
+      dd <- tools::R_user_dir('HemaScribe', 'data')
+      cat('HemaScribe data dir:', dd, '\n')
+      print(list.files(dd))
+      stopifnot(file.exists(file.path(dd, 'HemaScribe-data.rdb')))
+      cat('HemaScribe reference data staged OK\n')
     "
 
     # Smoke-test: each language stack must load
@@ -141,8 +149,12 @@ From: ubuntu:22.04
     export PATH="/opt/pixi/bin:/project/.pixi/envs/default/bin:$PATH"
     export PIXI_PROJECT_DIR=/project
     export R_LIBS_USER=/project/.pixi/envs/default/lib/R/library
-    export XDG_CACHE_HOME=/project/.cache
-    # site-packages + $HOME are read-only at runtime; send writable caches to /tmp.
+    # HemaScribe reference data is baked here; .onAttach finds it and skips the
+    # GitHub download (offline-safe). Read-only is fine — it only reads.
+    export XDG_DATA_HOME=/project/.local/share
+    # site-packages + $HOME + XDG cache are read-only at runtime; send writable
+    # caches to /tmp so numba/matplotlib/piggyback never fail on read-only paths.
+    export XDG_CACHE_HOME=/tmp/xdg_cache
     export NUMBA_CACHE_DIR=/tmp/numba_cache
     export MPLCONFIGDIR=/tmp/mpl_cache
 
