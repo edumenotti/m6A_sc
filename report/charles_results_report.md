@@ -29,4 +29,4 @@
 - The lymphoid compartment is unevenly represented across samples, so lymphoid composition changes are not interpreted here.
 - Results for the rarest populations (basophils, megakaryocytes) rest on small numbers and are tentative; scCODA credibility indicates direction, not a calibrated effect size.
 
-*Reproducible from `results/18_composition/final_annotation`, `results/19_pseudobulk_deg/final_annotation`, and `results/20_pathway_activity/final_annotation`. Code: `pipeline/scripts/18_composition_sccoda.py`, `19_pseudobulk_deg.py`, `20_pathway_activity.py`; figures `report/make_fig1_umap.py`, `report/make_fig2_composition.py`. Canonical annotation: `21z_finalize_annotation.py`, `22_clean_annotation_columns.py`. Branch `feat/composition-pseudobulk`.*
+*Analysis code, processed data objects, and the underlying result tables are available on request.*
