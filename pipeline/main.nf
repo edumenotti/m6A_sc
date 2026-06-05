@@ -138,7 +138,7 @@ workflow {
             }
         }
     } else {
-        frozen_ann_ch = Channel.fromPath(params.frozen_manual_annotation, checkIfExists: true)
+        frozen_ann_ch = Channel.fromPath(params.frozen_per_cell_labels, checkIfExists: true)
         FREEZE_MANUAL_ANNOTATION(annotated_h5ad_ch, frozen_ann_ch)
         prog_annotated_ch = FREEZE_MANUAL_ANNOTATION.out.h5ad.first()
     }
@@ -167,8 +167,8 @@ workflow {
             if (!params.run_progenitor_recluster || !file(params.progenitor_annotation_map).exists()) {
                 error "rederive_manual_annotation=true + run_downstream_analysis=true requires run_progenitor_recluster=true and a filled ${params.progenitor_annotation_map}, so APPLY_PROGENITOR_ANNOTATION can produce adata_progenitor_annotated.h5ad first."
             }
-        } else if (!file(params.frozen_manual_annotation).exists()) {
-            error "run_downstream_analysis=true requires the frozen per-cell annotation at ${params.frozen_manual_annotation} (or set rederive_manual_annotation=true to re-derive it from clustering)."
+        } else if (!file(params.frozen_per_cell_labels).exists()) {
+            error "run_downstream_analysis=true requires the frozen per-cell labels at ${params.frozen_per_cell_labels} (or set rederive_manual_annotation=true to re-derive them from clustering)."
         }
 
         // Per-cell macrophage states run on the manual (pre-HemaScribe) object.

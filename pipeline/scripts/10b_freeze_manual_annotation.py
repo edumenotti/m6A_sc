@@ -1,18 +1,22 @@
 #!/usr/bin/env python
-"""Stamp the frozen canonical manual annotation onto a fresh object by barcode.
+"""Stamp the frozen canonical per-cell labels onto a fresh object by barcode.
 
-The manual annotation (manual_level1/level2) is a human, cluster-ID-based
-decision made against one specific clustering run. Re-running scVI integration +
-Leiden on different hardware drifts the partition (different cluster count/IDs),
-so a `cluster_id -> label` map can never be reapplied reproducibly. Cell barcodes,
-however, are identical across runs (same input matrix), so we transfer the frozen
-per-cell labels by barcode instead of re-deriving them from clusters.
+Two per-cell labels cannot be re-derived by the pipeline and must be transferred
+from the canonical object:
+  - manual_level1/level2: a human, cluster-ID-based annotation made against one
+    specific clustering run. Re-running scVI + Leiden on different hardware drifts
+    the partition (different cluster count/IDs), so a `cluster_id -> label` map can
+    never be reapplied reproducibly.
+  - genotype (WT/Mutant): an in-silico per-cell assignment that is NOT encoded in
+    sample_id (which is donor_treatment_population_45_replicate), so it cannot be
+    recovered from sample metadata. Downstream 15/18/19 read it directly.
 
-This replaces the fragile chain APPLY_MANUAL_ANNOTATION -> SUBSET_RECLUSTER ->
-PROGENITOR_RECLUSTER -> APPLY_PROGENITOR_ANNOTATION with a single deterministic
-join, producing the same adata_progenitor_annotated.h5ad the HemaScribe chain
-consumes. Expression/embeddings come fresh from the (reproducible) pipeline; only
-the manual labels are frozen.
+Cell barcodes are identical across runs (same input matrix), so we transfer these
+frozen labels by barcode instead of re-deriving them. This replaces the fragile
+chain APPLY_MANUAL_ANNOTATION -> SUBSET_RECLUSTER -> PROGENITOR_RECLUSTER ->
+APPLY_PROGENITOR_ANNOTATION with a single deterministic join, producing the same
+adata_progenitor_annotated.h5ad the HemaScribe chain consumes. Expression and
+embeddings come fresh from the (reproducible) pipeline; only these labels are frozen.
 """
 
 from __future__ import annotations
@@ -23,7 +27,7 @@ from pathlib import Path
 import pandas as pd
 import scanpy as sc
 
-FROZEN_COLS = ["manual_level1", "manual_level2", "manual_annotation_confidence"]
+FROZEN_COLS = ["manual_level1", "manual_level2", "manual_annotation_confidence", "genotype"]
 
 
 def main(args: argparse.Namespace) -> None:
@@ -83,7 +87,7 @@ def main(args: argparse.Namespace) -> None:
         }
     )
     summary.to_csv(out / "freeze_manual_annotation_summary.csv", index=False)
-    adata.obs[FROZEN_COLS].to_csv(out / "manual_annotation_per_cell.csv")
+    adata.obs[FROZEN_COLS].to_csv(out / "frozen_labels_per_cell.csv")
     adata.write_h5ad(out / "adata_progenitor_annotated.h5ad")
     print(f"[freeze] wrote adata_progenitor_annotated.h5ad with {adata.n_obs} cells")
 
