@@ -39,6 +39,11 @@ run_label_transfer: false
 leiden_resolution_manual: 1.0
 annotation_version: "manual_full_r1.0_2026-05-05"
 manual_annotation_map: "config/manual_annotation_full_map_leiden_r1.0.tsv"
+# Manual annotation strategy. Default: transfer the frozen canonical per-cell labels
+# by barcode (reproducible on any hardware — cluster-ID maps drift across machines).
+# Set true to re-derive from clustering (only reproducible on the original machine).
+rederive_manual_annotation: false
+frozen_manual_annotation: "config/canonical_manual_annotation_per_cell.csv.gz"
 
 # ── Downstream analysis (scripts 15, 21a/b/c, 21z, 22, 18, 19, 20) ──
 # Runs the canonical-annotation chain (HemaScribe → finalize → cleanup, producing

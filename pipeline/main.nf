@@ -56,6 +56,7 @@ include { SUBSET_RECLUSTER }        from './modules/subset_recluster'
 include { FINAL_FIGURES }           from './modules/final_figures'
 include { PROGENITOR_RECLUSTER }       from './modules/progenitor_recluster'
 include { APPLY_PROGENITOR_ANNOTATION } from './modules/apply_progenitor_annotation'
+include { FREEZE_MANUAL_ANNOTATION }    from './modules/freeze_manual_annotation'
 include { MACROPHAGE_STATES }  from './modules/macrophage_states'
 include { COMPOSITION_SCCODA } from './modules/composition'
 include { PSEUDOBULK_DEG }     from './modules/pseudobulk_deg'
@@ -99,35 +100,47 @@ workflow {
     MARKERS(annotated_h5ad_ch)
 
     /*
-     * Post-cluster annotation sub-workflow (scripts 09–12):
-     *   MANUAL_MARKER_REVIEW  — produces diagnostics for human review
-     *   [HUMAN: fill pipeline/config/manual_annotation_level1_map_leiden_r2.0.tsv]
-     *   APPLY_MANUAL_ANNOTATION — applies filled map; map is committed so this always runs
-     *   SUBSET_RECLUSTER      — B cell / erythroid level2 sub-clustering
-     *   FINAL_FIGURES         — curated summary figures for the annotated dataset
+     * Manual annotation → adata_progenitor_annotated.h5ad (feeds the HemaScribe chain).
+     *
+     * Default (rederive_manual_annotation=false): FREEZE_MANUAL_ANNOTATION transfers
+     * the canonical per-cell manual_level1/level2 labels onto the fresh object BY
+     * BARCODE. This is reproducible on any hardware. Cluster-ID-based maps are not:
+     * scVI integration + Leiden drift across machines (different cluster count/IDs),
+     * so a `cluster_id -> label` map cannot be reapplied to a re-clustered object.
+     *
+     * rederive_manual_annotation=true: re-run the original cluster-based chain
+     * (MANUAL_MARKER_REVIEW → APPLY_MANUAL_ANNOTATION → SUBSET_RECLUSTER →
+     * FINAL_FIGURES → PROGENITOR_RECLUSTER → APPLY_PROGENITOR_ANNOTATION). Only
+     * reproducible on the exact machine/library versions the maps were built on.
      */
-    annotation_map_ch = Channel.fromPath(params.manual_annotation_map, checkIfExists: true)
-
-    MANUAL_MARKER_REVIEW(annotated_h5ad_ch)
-    APPLY_MANUAL_ANNOTATION(annotated_h5ad_ch, annotation_map_ch)
-    SUBSET_RECLUSTER(APPLY_MANUAL_ANNOTATION.out.h5ad)
-    FINAL_FIGURES(SUBSET_RECLUSTER.out.h5ad)
-
     prog_annotated_ch = Channel.empty()
-    if (params.run_progenitor_recluster) {
-        PROGENITOR_RECLUSTER(SUBSET_RECLUSTER.out.h5ad)
+    if (params.rederive_manual_annotation) {
+        annotation_map_ch = Channel.fromPath(params.manual_annotation_map, checkIfExists: true)
 
-        map_file = file(params.progenitor_annotation_map)
-        if (map_file.exists()) {
-            APPLY_PROGENITOR_ANNOTATION(
-                SUBSET_RECLUSTER.out.h5ad,
-                PROGENITOR_RECLUSTER.out.assignments,
-                Channel.fromPath(params.progenitor_annotation_map, checkIfExists: true)
-            )
-            prog_annotated_ch = APPLY_PROGENITOR_ANNOTATION.out.h5ad.first()
-        } else {
-            log.info "[progenitor] Skipping APPLY_PROGENITOR_ANNOTATION — annotation map not found at ${params.progenitor_annotation_map}. Fill in the map after reviewing PROGENITOR_RECLUSTER outputs, then re-run."
+        MANUAL_MARKER_REVIEW(annotated_h5ad_ch)
+        APPLY_MANUAL_ANNOTATION(annotated_h5ad_ch, annotation_map_ch)
+        SUBSET_RECLUSTER(APPLY_MANUAL_ANNOTATION.out.h5ad)
+        FINAL_FIGURES(SUBSET_RECLUSTER.out.h5ad)
+
+        if (params.run_progenitor_recluster) {
+            PROGENITOR_RECLUSTER(SUBSET_RECLUSTER.out.h5ad)
+
+            map_file = file(params.progenitor_annotation_map)
+            if (map_file.exists()) {
+                APPLY_PROGENITOR_ANNOTATION(
+                    SUBSET_RECLUSTER.out.h5ad,
+                    PROGENITOR_RECLUSTER.out.assignments,
+                    Channel.fromPath(params.progenitor_annotation_map, checkIfExists: true)
+                )
+                prog_annotated_ch = APPLY_PROGENITOR_ANNOTATION.out.h5ad.first()
+            } else {
+                log.info "[progenitor] Skipping APPLY_PROGENITOR_ANNOTATION — annotation map not found at ${params.progenitor_annotation_map}. Fill in the map after reviewing PROGENITOR_RECLUSTER outputs, then re-run."
+            }
         }
+    } else {
+        frozen_ann_ch = Channel.fromPath(params.frozen_manual_annotation, checkIfExists: true)
+        FREEZE_MANUAL_ANNOTATION(annotated_h5ad_ch, frozen_ann_ch)
+        prog_annotated_ch = FREEZE_MANUAL_ANNOTATION.out.h5ad.first()
     }
 
     /*
@@ -150,8 +163,12 @@ workflow {
      *   confound + n=2 → exploratory only); see results/_archive_exploratory/.
      */
     if (params.run_downstream_analysis) {
-        if (!params.run_progenitor_recluster || !file(params.progenitor_annotation_map).exists()) {
-            error "run_downstream_analysis=true requires run_progenitor_recluster=true and a filled ${params.progenitor_annotation_map}, so APPLY_PROGENITOR_ANNOTATION can produce adata_progenitor_annotated.h5ad first."
+        if (params.rederive_manual_annotation) {
+            if (!params.run_progenitor_recluster || !file(params.progenitor_annotation_map).exists()) {
+                error "rederive_manual_annotation=true + run_downstream_analysis=true requires run_progenitor_recluster=true and a filled ${params.progenitor_annotation_map}, so APPLY_PROGENITOR_ANNOTATION can produce adata_progenitor_annotated.h5ad first."
+            }
+        } else if (!file(params.frozen_manual_annotation).exists()) {
+            error "run_downstream_analysis=true requires the frozen per-cell annotation at ${params.frozen_manual_annotation} (or set rederive_manual_annotation=true to re-derive it from clustering)."
         }
 
         // Per-cell macrophage states run on the manual (pre-HemaScribe) object.
