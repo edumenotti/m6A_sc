@@ -16,6 +16,11 @@ doubletfinder_install_missing: true
 n_hvgs: 3000
 n_latent: 30
 max_epochs: 400
+# GPU sizing for scVI INTEGRATE. Moderate on purpose so it schedules fast on a
+# shared GPU partition (scVI on ~42k cells is light). Raise if your cluster is OK.
+gpu_mem: "16 GB"
+gpu_cpus: 4
+gpu_time: "02:00:00"
 leiden_resolution: 0.5
 popv_methods: "KNN_BBKNN,KNN_SCVI,SCANVI_POPV,Support_Vector,XGboost"
 popv_mode: "retrain"

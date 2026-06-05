@@ -1,8 +1,8 @@
 process INTEGRATE {
     tag "integrate"
     publishDir "${params.outdir}/04_integrate", mode: 'copy'
-    memory '64 GB'
-    cpus 8
+    memory params.gpu_mem
+    cpus params.gpu_cpus
     accelerator 1
 
     input:
