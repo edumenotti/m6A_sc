@@ -32,9 +32,13 @@ reconcile_cluster_majority_min_fraction: 0.70
 progenitor_annotation_map: "config/progenitor_annotation_map.tsv"
 run_progenitor_recluster: true
 run_label_transfer: false
-leiden_resolution_manual: 2.0
-annotation_version: "manual_level1_r2.0_2026-05-05"
-manual_annotation_map: "config/manual_annotation_level1_map_leiden_r2.0.tsv"
+# Canonical manual annotation backbone: leiden_r1.0 + the coarse→fine full map
+# (carries manual_level1 AND manual_level2). The downstream subset-recluster
+# (script 12) is hardcoded to leiden_r1.0 clusters 15/13 and refines manual_level2,
+# so this must stay r1.0. (The level1-only r2.0 map was an abandoned exploration.)
+leiden_resolution_manual: 1.0
+annotation_version: "manual_full_r1.0_2026-05-05"
+manual_annotation_map: "config/manual_annotation_full_map_leiden_r1.0.tsv"
 
 # ── Downstream analysis (scripts 15, 21a/b/c, 21z, 22, 18, 19, 20) ──
 # Runs the canonical-annotation chain (HemaScribe → finalize → cleanup, producing
