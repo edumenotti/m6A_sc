@@ -100,13 +100,19 @@ def main():
         raise SystemExit(f"[22] Expected columns to rename are missing: {missing_rename}")
     adata.obs = adata.obs.rename(columns=present_rename)
 
-    # verify all KEEP columns exist
+    # Keep the intersection of KEEP and the columns actually present. Some KEEP
+    # entries are provenance from the cluster-based annotation path (script 10:
+    # manual_annotation_cluster/basis/review_flag) and are legitimately absent
+    # under the barcode-transfer path (FREEZE_MANUAL_ANNOTATION), where there is no
+    # per-cell cluster map. Their absence is informational, not an error — forcing
+    # them in would re-introduce a cluster ID that doesn't match this run's leiden.
+    present_keep = [c for c in KEEP if c in adata.obs.columns]
     missing_keep = [c for c in KEEP if c not in adata.obs.columns]
     if missing_keep:
-        raise SystemExit(f"[22] KEEP columns not found (aborting): {missing_keep}")
+        print(f"[22] KEEP columns absent (cluster-path provenance, skipping): {missing_keep}")
 
-    dropped = [c for c in adata.obs.columns if c not in KEEP]
-    print(f"[22] Keeping {len(KEEP)} columns, dropping {len(dropped)}")
+    dropped = [c for c in adata.obs.columns if c not in present_keep]
+    print(f"[22] Keeping {len(present_keep)} columns, dropping {len(dropped)}")
 
     # record provenance before dropping
     adata.uns["column_cleanup"] = {
@@ -114,6 +120,7 @@ def main():
         "date": "2026-06-04",
         "canonical_annotation": "cell_type",
         "renamed": present_rename,
+        "keep_columns_absent": sorted(missing_keep),
         "backup_with_all_columns": (
             os.path.basename(args.backup) if args.backup else "none (out != input)"
         ),
@@ -126,7 +133,7 @@ def main():
         ),
     }
 
-    adata.obs = adata.obs[KEEP].copy()
+    adata.obs = adata.obs[present_keep].copy()
 
     print(f"[22] obs columns after: {adata.obs.shape[1]}")
     print(f"[22] Writing {out_path}")
