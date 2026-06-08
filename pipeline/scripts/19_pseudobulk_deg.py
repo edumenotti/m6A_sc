@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-"""
-19_pseudobulk_deg.py
-
-Per-celltype pseudobulk differential expression with PyDESeq2.
+"""Per-celltype pseudobulk differential expression with PyDESeq2.
 Donor is the replicate unit (n=2 per condition → 8 donor-level samples per celltype).
 
 For each celltype with ≥10 cells in every (donor × condition) sample, we:
@@ -77,7 +74,7 @@ def main() -> None:
         adata.obs["donor"].astype(str) + "__" + adata.obs["condition"].astype(str)
     )
 
-    # ── Pseudobulk via decoupler (sum, raw counts layer) ────────────────
+    # Pseudobulk: sum raw counts per (sample, celltype)
     import decoupler as dc
     pdata = dc.pp.pseudobulk(
         adata,
@@ -192,7 +189,6 @@ def main() -> None:
                     "n_samples": sub.n_obs,
                 })
 
-                # Volcano
                 fig, ax = plt.subplots(figsize=(7, 6))
                 x = res["log2FoldChange"].values
                 y = -np.log10(res["padj"].fillna(1).values)

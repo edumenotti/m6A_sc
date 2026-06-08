@@ -26,15 +26,14 @@ import scanpy as sc
 
 sc.settings.verbosity = 1
 
-# ── Cluster IDs ──────────────────────────────────────────────────────────────
 PROG_CLUSTERS     = ["3", "6", "10"]        # primary progenitor clusters
 NEIGHBOR_CLUSTERS = ["7", "8"]              # cycling myeloid — neighbor context
 CLUSTER_KEY       = "leiden_r1.0"
 
-# ── Resolutions to explore ───────────────────────────────────────────────────
 RESOLUTIONS = [0.2, 0.4, 0.6, 0.8, 1.0]
 
-# ── Genes to exclude from HVG selection and DE ranking ───────────────────────
+# Excluded from HVG selection and DE ranking: IEG/stress, mito, ribo genes
+# drive spurious clustering that masks true progenitor lineage structure.
 IEG_GENES = {
     "Fos", "Fosb", "Fosl1", "Fosl2",
     "Jun", "Junb", "Jund",
@@ -55,7 +54,7 @@ def is_problem_gene(gene: str) -> bool:
         or gene in IEG_GENES
     )
 
-# ── Progenitor lineage markers ────────────────────────────────────────────────
+# Progenitor lineage markers
 PROGENITOR_MARKERS: dict[str, list[str]] = {
     "HSC":           ["Hlf", "Procr", "Mecom", "Ly6a", "Slamf1", "Mpl"],
     "MPP":           ["Kit", "Cd34", "Adgrg1", "Adgrl4"],
@@ -70,8 +69,6 @@ PROGENITOR_MARKERS: dict[str, list[str]] = {
 
 QC_MARKERS = ["mt-Co1", "n_counts", "n_genes", "pct_counts_mt"]
 
-
-# ── Helpers ───────────────────────────────────────────────────────────────────
 
 def present(adata: sc.AnnData, genes: list[str]) -> list[str]:
     return [g for g in genes if g in adata.var_names]
@@ -235,18 +232,14 @@ def build_annotation_template(
     print("  Also note which leiden_resolution you chose at top of that file (comment line)")
 
 
-# ── Main ──────────────────────────────────────────────────────────────────────
-
 def main(args: argparse.Namespace) -> None:
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
 
-    # ── 1. Load ──────────────────────────────────────────────────────────────
     adata = sc.read_h5ad(args.input)
     print(f"Loaded {adata.n_obs} cells, {adata.n_vars} genes")
     print(f"obs columns: {list(adata.obs.columns)}")
 
-    # ── 2. Subset ────────────────────────────────────────────────────────────
     prog_mask = adata.obs[CLUSTER_KEY].astype(str).isin(PROG_CLUSTERS)
     neighbor_mask = adata.obs[CLUSTER_KEY].astype(str).isin(NEIGHBOR_CLUSTERS)
 
@@ -261,11 +254,9 @@ def main(args: argparse.Namespace) -> None:
     adata_prog.obsm["X_umap_original"] = adata_prog.obsm["X_umap"].copy()
     adata_prog_n.obsm["X_umap_original"] = adata_prog_n.obsm["X_umap"].copy()
 
-    # ── 3. Re-embed progenitor subset ────────────────────────────────────────
     print("\nRe-embedding progenitor subset (excluding mito/ribo/IEG from HVGs)...")
     adata_prog = clean_and_reembed(adata_prog)
 
-    # ── 4. Leiden clusterings ────────────────────────────────────────────────
     print(f"\nComputing Leiden at resolutions: {RESOLUTIONS}")
     adata_prog = leiden_multi(adata_prog, RESOLUTIONS)
     for res in RESOLUTIONS:
@@ -278,11 +269,9 @@ def main(args: argparse.Namespace) -> None:
     adata_prog.obs[leiden_cols].to_csv(out / "leiden_subset_assignments.csv")
     print(f"\n✓ Leiden assignments saved to {out}/leiden_subset_assignments.csv")
 
-    # ── 5. Marker scoring ────────────────────────────────────────────────────
     print("\nScoring progenitor lineage markers...")
     adata_prog = score_markers(adata_prog)
 
-    # ── 6. UMAPs — QC and batch ──────────────────────────────────────────────
     print("\nSaving UMAPs...")
     for col in [CLUSTER_KEY, "manual_level1", "manual_level2"]:
         save_umap(adata_prog, col, out, "prog_orig_umap")
@@ -311,7 +300,6 @@ def main(args: argparse.Namespace) -> None:
     #     for g in present(adata_prog, genes[:2]):
     #         save_umap(adata_prog, g, out, f"gene_{lineage}")
 
-    # ── 7. DE analysis + marker hit tables ───────────────────────────────────
     print("\nRunning DE analysis at each resolution...")
     marker_hits: dict[str, pd.DataFrame] = {}
     for res in RESOLUTIONS:
@@ -351,11 +339,9 @@ def main(args: argparse.Namespace) -> None:
         top = de_full_df[de_full_df["cluster_r1.0"] == c].head(20)["gene"].tolist()
         print(f"  Cluster {c}: {top}")
 
-    # ── 8. Annotation template ───────────────────────────────────────────────
     print("\nBuilding annotation template TSV...")
     build_annotation_template(adata_prog, RESOLUTIONS, marker_hits, out)
 
-    # ── 9. Summary table ─────────────────────────────────────────────────────
     print("\n" + "=" * 60)
     print("PROGENITOR SUBSET — CLUSTER SUMMARY")
     print("=" * 60)

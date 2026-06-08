@@ -28,13 +28,13 @@ import os
 
 import scanpy as sc
 
-# ── Canonical rename: the ONE final call and its provenance companion ────────
+# Canonical rename: the ONE final call and its provenance companion.
 RENAME = {
     "final_annotation": "cell_type",
     "final_annotation_rule": "cell_type_rule",
 }
 
-# ── Columns to KEEP (after rename is applied, so use the NEW names) ───────────
+# Columns to KEEP (after rename is applied, so use the NEW names).
 KEEP = [
     # sample metadata
     "donor", "treatment", "population", "replicate", "sample_id", "pool",
@@ -93,7 +93,6 @@ def main():
     n_before = adata.obs.shape[1]
     print(f"      obs columns before: {n_before}")
 
-    # rename canonical columns
     present_rename = {k: v for k, v in RENAME.items() if k in adata.obs.columns}
     missing_rename = set(RENAME) - set(present_rename)
     if missing_rename:
@@ -114,7 +113,7 @@ def main():
     dropped = [c for c in adata.obs.columns if c not in present_keep]
     print(f"[22] Keeping {len(present_keep)} columns, dropping {len(dropped)}")
 
-    # record provenance before dropping
+    # Record provenance before dropping.
     adata.uns["column_cleanup"] = {
         "script": "pipeline/scripts/22_clean_annotation_columns.py",
         "date": "2026-06-04",

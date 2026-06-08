@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-"""
-18_composition_sccoda.py
-
-Bayesian compositional analysis with scCODA on cell-type frequencies per donor
+"""Bayesian compositional analysis with scCODA on cell-type frequencies per donor
 per condition. Tests:
 - Effect of treatment (STM vs DMSO) within each genotype
 - Effect of genotype (Mutant vs WT) within each treatment
@@ -87,7 +84,6 @@ def main() -> None:
     print("\nCells per (donor, condition):")
     print(obs.groupby(["condition", "donor"]).size())
 
-    # ── Build sample × celltype count matrix ─────────────────────────────
     counts = (
         obs.groupby(["sample", "celltype"]).size().unstack(fill_value=0).reset_index()
     )
@@ -103,7 +99,6 @@ def main() -> None:
     print(f"\nCount matrix shape: {counts.shape}")
     print(counts.head().to_string())
 
-    # ── Reference cell type selection ────────────────────────────────────
     celltype_cols = [c for c in counts.columns
                      if c not in ("sample", "donor", "condition", "genotype", "treatment")]
     # Most-abundant cell type with >0 in every sample
@@ -124,7 +119,6 @@ def main() -> None:
         fh.write(f"sample_totals_per_celltype:\n{counts[celltype_cols].sum(axis=0).to_string()}\n")
     print(f"\nReference cell type: {ref}")
 
-    # ── scCODA model: factorial formula ──────────────────────────────────
     from sccoda.util import cell_composition_data as dat
     from sccoda.util import comp_ana as mod
 
@@ -175,7 +169,7 @@ def main() -> None:
             fh.write(buf.getvalue())
         print(f"  credible effects:\n{ce_df[ce_df['credible']].to_string(index=False)}")
 
-    # ── Diagnostic boxplots ──────────────────────────────────────────────
+    # Diagnostic boxplots of cell-type fractions per condition
     fig, axes = plt.subplots(1, 2, figsize=(16, 6))
     long = counts.melt(
         id_vars=["sample", "donor", "condition", "genotype", "treatment"],

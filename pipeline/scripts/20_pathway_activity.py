@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-"""
-20_pathway_activity.py
-
-Pathway activity per celltype × contrast, computed from the PyDESeq2 result
+"""Pathway activity per celltype × contrast, computed from the PyDESeq2 result
 tables in `results/19_pseudobulk_deg/`. We use decoupler's univariate linear
 model (ULM) on the `stat` column (the Wald statistic) — recommended pattern
 for transferring bulk-style DEG output into a multi-collection enrichment.
@@ -57,7 +54,6 @@ def main() -> None:
 
     import decoupler as dc
 
-    # ── Build prior knowledge network from MSigDB ───────────────────────
     # NOTE: decoupler 2.1.6 exposes MSigDB via `dc.op.resource('MSigDB', ...)`.
     # The returned DataFrame has columns ['genesymbol','collection','geneset'].
     # We filter the single resource by the `collection` field to assemble
@@ -79,7 +75,6 @@ def main() -> None:
         f"{len(net)} edges"
     )
 
-    # ── Load DEG result tables ──────────────────────────────────────────
     files = sorted(glob.glob(os.path.join(args.deg_dir, "deg_*_treatment.csv"))) + \
             sorted(glob.glob(os.path.join(args.deg_dir, "deg_*_genotype.csv")))
     files = [f for f in files if "_top" not in f]
@@ -131,7 +126,6 @@ def main() -> None:
         _, padj_vals, _, _ = multipletests(pv, method="fdr_bh")
         big.loc[idx[mask], "padj"] = padj_vals
 
-    # ── Per-contrast wide tables + heatmaps ─────────────────────────────
     for contrast in big["contrast"].unique():
         sub = big[big["contrast"] == contrast].copy()
         sub.to_csv(
@@ -166,7 +160,6 @@ def main() -> None:
         )
         plt.close(fig)
 
-    # ── Union of significant pathway hits ───────────────────────────────
     sig = big[big["padj"] < args.padj].copy()
     sig = sig.sort_values(["contrast", "celltype", "padj"])
     sig.to_csv(os.path.join(args.out, "pathway_top_hits.csv"), index=False)

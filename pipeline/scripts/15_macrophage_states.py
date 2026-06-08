@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-"""
-15_macrophage_states.py
-
-Gene-set scoring for the monocyte cluster (manual_level1 == "monocyte"),
+"""Gene-set scoring for the monocyte cluster (manual_level1 == "monocyte"),
 stratified across 4 conditions: WT_DMSO, WT_STM, Mutant_DMSO, Mutant_STM.
 
 Uses decoupler ULM to score M1 (pro-inflammatory), M2 (anti-inflammatory),
@@ -36,7 +33,7 @@ import matplotlib.pyplot as plt
 warnings.filterwarnings("ignore", category=FutureWarning)
 sc.settings.verbosity = 1
 
-# ── Gene sets (mouse symbols) ──────────────────────────────────────────────
+# Gene sets (mouse symbols)
 # M1: classical pro-inflammatory / anti-tumoral activation
 M1_GENES = [
     "Nos2", "Tnf", "Il1b", "Il6", "Il12b", "Cxcl9", "Cxcl10",
@@ -120,7 +117,6 @@ def main():
     sc.pp.normalize_total(adata, target_sum=1e4)
     sc.pp.log1p(adata)
 
-    # ── Subset to monocyte cluster ──────────────────────────────────────
     mac = adata[adata.obs["manual_level1"] == "monocyte"].copy()
     mac.obs["condition"] = (
         mac.obs["genotype"].astype(str) + "_" + mac.obs["treatment"].astype(str)
@@ -128,19 +124,16 @@ def main():
     print(f"Monocyte cells: {mac.shape[0]}")
     print(mac.obs["condition"].value_counts())
 
-    # ── Score gene sets ─────────────────────────────────────────────────
     scores = score_gene_sets(mac, {"M1": M1_GENES, "M2": M2_GENES, "OAS": OAS_GENES})
     scores["condition"] = mac.obs["condition"].values
     scores.to_csv(os.path.join(args.out, "monocyte_state_scores.csv"))
 
-    # ── Summary table: median per condition ────────────────────────────
     summary = scores.groupby("condition")[["M1", "M2", "OAS"]].median()
     summary.index.name = "condition"
     summary.to_csv(os.path.join(args.out, "monocyte_score_summary.csv"))
     print("\nMedian scores per condition:")
     print(summary.round(3).to_string())
 
-    # ── Plots ───────────────────────────────────────────────────────────
     plot_scores(scores, os.path.join(args.out, "monocyte_state_scores.png"))
 
     print("Script 15 complete.")

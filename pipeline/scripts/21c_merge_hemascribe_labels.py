@@ -45,12 +45,10 @@ import matplotlib.pyplot as plt
 warnings.filterwarnings("ignore")
 
 
-# ─────────────────────────────────────────────────────────────────────────────
 # Sort-gate priors. Labels are LOWERCASED before comparison so we tolerate
 # variations like "HSC" / "hsc" / "Hsc". The check is substring-permissive:
 # any allowed token appearing in the label passes (covers "LT-HSC", "MPP4",
 # "GMP_neutrophil_primed" etc.).
-# ─────────────────────────────────────────────────────────────────────────────
 SORT_PRIORS = {
     # LSK = Lin-/Sca1+/c-Kit+ → stem / multipotent / early lymphoid (CLP is Sca1+).
     # HemaScribe labels seen here: HSPC (broad), HSC/STHSC/MPP{2,3,4}/FcG_*_MPP3 (fine).
@@ -130,8 +128,7 @@ def main():
     print(f"[21c] Loading labels {args.labels}")
     lab = pd.read_csv(args.labels)
     lab = lab.set_index("cell_id")
-    # Reindex to AnnData order; missing cells get NaN
-    lab = lab.reindex(adata.obs_names)
+    lab = lab.reindex(adata.obs_names)  # AnnData order; missing cells get NaN
     n_missing = (lab["hemascribe_broad"].isna() | lab["hemascribe_fine"].isna()).sum()
     print(f"      cells with NaN in broad or fine: {n_missing}")
 

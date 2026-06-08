@@ -37,7 +37,6 @@ suppressPackageStartupMessages({
   library(ggplot2)
 })
 
-# ── CLI ────────────────────────────────────────────────────────────────────
 parser <- ArgumentParser()
 parser$add_argument("--input-dir", required=TRUE,
                     help="dir with counts.mtx, barcodes.txt, features.csv, metadata.csv, export_info.json")
@@ -49,7 +48,6 @@ args <- parser$parse_args()
 dir.create(args$out, recursive=TRUE, showWarnings=FALSE)
 options(future.globals.maxSize = 4 * 1024^3)  # 4 GB
 
-# ── Load MatrixMarket bundle ───────────────────────────────────────────────
 message("Loading expression bundle from ", args$input_dir, " ...")
 info <- if (file.exists(file.path(args$input_dir, "export_info.json"))) {
   jsonlite::fromJSON(file.path(args$input_dir, "export_info.json"))
@@ -84,10 +82,9 @@ if (data_is_integer) {
 }
 rm(counts); gc(verbose=FALSE)
 
-# ── CellChatDB ─────────────────────────────────────────────────────────────
 CellChatDB.use <- if (args$organism == "Mm") CellChatDB.mouse else CellChatDB.human
 
-# ── Helper: run one CellChat object (assumes data is normalized) ───────────
+# Build one CellChat object (assumes data is already normalized).
 run_cellchat <- function(data_sub, meta_sub, label, min_cells) {
   message("  Building CellChat for: ", label,
           " (", ncol(data_sub), " cells, ",
@@ -104,7 +101,6 @@ run_cellchat <- function(data_sub, meta_sub, label, min_cells) {
   cc
 }
 
-# ── Per-level pipeline ─────────────────────────────────────────────────────
 run_level <- function(level_col, out_subdir) {
   message("\n=== Annotation level: ", level_col, " ===")
   dir.create(out_subdir, recursive=TRUE, showWarnings=FALSE)
@@ -112,13 +108,12 @@ run_level <- function(level_col, out_subdir) {
   meta_lvl <- meta
   meta_lvl$celltype <- as.character(meta_lvl[[level_col]])
 
-  # Drop NA celltype cells
   keep_cell <- !is.na(meta_lvl$celltype) & meta_lvl$celltype != ""
   if (!all(keep_cell)) {
     message("  Dropping ", sum(!keep_cell), " cells with NA/empty ", level_col)
   }
 
-  # Cell-count diagnostic table (celltype × condition) ─ before any filtering
+  # Cell-count diagnostic (celltype × condition) recorded before any filtering
   ct_table <- as.data.frame.matrix(table(
     celltype  = meta_lvl$celltype[keep_cell],
     condition = meta_lvl$condition[keep_cell]
@@ -180,7 +175,6 @@ run_level <- function(level_col, out_subdir) {
     return(invisible(NULL))
   }
 
-  # ── Cross-condition summary tables ──────────────────────────────────────
   summary_df <- do.call(rbind, lapply(names(cc_list), function(nm) {
     data.frame(
       condition    = nm,
@@ -195,7 +189,6 @@ run_level <- function(level_col, out_subdir) {
             file.path(out_subdir, "cellchat_interaction_weights.csv"),
             row.names=FALSE)
 
-  # ── Merge + rankNet info-flow per pathway ───────────────────────────────
   cc_merge <- tryCatch(
     mergeCellChat(cc_list, add.names=names(cc_list)),
     error = function(e) {
@@ -228,7 +221,7 @@ run_level <- function(level_col, out_subdir) {
     }
   }
 
-  # ── Pairwise delta_interaction_counts (sender × receiver) ───────────────
+  # Pairwise delta interaction counts (sender × receiver).
   pair_df_all <- list()
   pairs <- list(
     c("Mutant_STM",  "Mutant_DMSO"),
@@ -257,7 +250,7 @@ run_level <- function(level_col, out_subdir) {
               row.names=FALSE)
   }
 
-  # ── Differential L-R via subsetCommunication on merged ──────────────────
+  # Differential ligand-receptor interactions via subsetCommunication.
   if (!is.null(cc_merge)) {
     for (pr in pairs) {
       A <- pr[1]; B <- pr[2]
@@ -285,7 +278,6 @@ run_level <- function(level_col, out_subdir) {
   }
 }
 
-# ── Run for both annotation levels ─────────────────────────────────────────
 for (level_col in c("manual_level1", "manual_level2")) {
   if (!(level_col %in% colnames(meta))) {
     message("Skipping ", level_col, " — not present in metadata")

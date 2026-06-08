@@ -52,7 +52,6 @@ def main(args: argparse.Namespace) -> None:
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
 
-    # ── Load ─────────────────────────────────────────────────────────────────
     adata = sc.read_h5ad(args.input)
     print(f"Loaded {adata.n_obs} cells")
 
@@ -70,7 +69,6 @@ def main(args: argparse.Namespace) -> None:
         )
     print(f"Using leiden resolution: {chosen_res} (column: {leiden_col})")
 
-    # ── Load map ─────────────────────────────────────────────────────────────
     map_df = pd.read_csv(args.map, sep="\t", comment="#")
     # Compare resolutions as floats so "0.4" and "0.40" both match.
     map_df = map_df[
@@ -103,7 +101,6 @@ def main(args: argparse.Namespace) -> None:
     for k, v in subcluster_to_level1.items():
         print(f"  subcluster {k} → level1={v}, level2={subcluster_to_level2.get(k)}")
 
-    # ── Apply ─────────────────────────────────────────────────────────────────
     adata.obs["manual_level1"] = adata.obs["manual_level1"].astype(str)
     adata.obs["manual_level2"] = adata.obs["manual_level2"].astype(str)
 
@@ -125,7 +122,6 @@ def main(args: argparse.Namespace) -> None:
     adata.obs["manual_level2"] = adata.obs["manual_level2"].astype("category")
     print(f"\nUpdated {n_updated_l1} barcodes for level1, {n_updated_l2} for level2")
 
-    # ── Summary ───────────────────────────────────────────────────────────────
     counts = (
         adata.obs.groupby(["manual_level1", "manual_level2"], observed=True)
         .size().reset_index(name="n_cells")
@@ -135,7 +131,6 @@ def main(args: argparse.Namespace) -> None:
     print("\nFinal annotation counts:")
     print(counts.to_string(index=False))
 
-    # ── UMAP verification plot ────────────────────────────────────────────────
     sc.pl.umap(
         adata, color=["manual_level1", "manual_level2"],
         show=False, frameon=False, legend_loc="right margin",
@@ -145,7 +140,6 @@ def main(args: argparse.Namespace) -> None:
     plt.close()
     print(f"✓ UMAP saved to {out}/umap_final_annotation.png")
 
-    # ── Save ──────────────────────────────────────────────────────────────────
     out_h5ad = out / "adata_progenitor_annotated.h5ad"
     adata.write_h5ad(out_h5ad)
     print(f"✓ Saved {out_h5ad}")
